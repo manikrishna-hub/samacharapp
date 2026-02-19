@@ -1,0 +1,55 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Chats</title>
+    <link rel="stylesheet" href="{% static 'css/chat.css' %}">
+</head>
+
+<body>
+<div class="contact-page">
+
+  <!-- LEFT SIDEBAR -->
+  <aside class="sidebar">
+      <div class="sidebar-header">
+          <h2>Chats</h2>
+      </div>
+
+      <!-- Search Bar -->
+      <div class="search-row">
+          <input type="search" placeholder="Search user...">
+      </div>
+
+      
+     <!-- CONTACT LIST -->
+	<div class="chat-list">
+    {% for user in all_users %}
+        <a href="/chat/{{ user.username }}/" class="chat-item">
+
+            <div class="chat-avatar">
+                {% if user.profile.profile_pic %}
+                    <img src="{{ user.profile.profile_pic.url }}" alt="DP">
+                {% else %}
+                    <img src="{% static 'images/default-dp.png' %}" alt="Default DP">
+                {% endif %}
+            </div>
+
+            <div class="chat-info">
+                <span class="chat-name">{{ user.username }}</span>
+            </div>
+
+        </a>
+    {% endfor %}
+</div>
+
+  </aside>
+
+  <!-- EMPTY RIGHT SIDE -->
+  <main class="preview">
+      <p>Select a chat to start messaging</p>
+  </main>
+
+</div>
+</body>
+</html>

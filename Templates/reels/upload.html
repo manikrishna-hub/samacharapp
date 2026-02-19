@@ -1,0 +1,7 @@
+<h2> Upload Reel</h2>
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  <input type="file" name="video" accept="video/mp4" required><br><br>
+  <textarea name="caption" placeholder="Caption..."></textarea><br><br>
+  <button type="submit">Upload</button>
+</form>	

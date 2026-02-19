@@ -1,0 +1,40 @@
+services:
+  web:
+    build: .
+    container_name: django_channels_app
+    command: daphne -b 0.0.0.0 -p 8000 MyApp.asgi:application
+    volumes:
+      - .:/app                # <-- MOUNT FULL PROJECT
+      - ./static:/app/static
+      - ./media:/app/media
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+      - db
+    environment:
+      - DJANGO_SETTINGS_MODULE=MyApp.settings
+    restart: always
+
+  redis:
+    image: redis:7
+    container_name: redis_server
+    ports:
+      - "6379:6379"
+    restart: always
+
+  db:
+    image: postgres:17
+    container_name: postgres_db
+    environment:
+      - POSTGRES_DB=Myappdata
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=Mani2405@
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: always
+
+volumes:
+  postgres_data:

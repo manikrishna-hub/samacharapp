@@ -1,0 +1,116 @@
+{% load static %}
+
+<div class="post-card">
+
+    <!-- HEADER -->
+    <div class="post-header">
+
+        <div class="post-user-info">
+            {% if post.user.profile.profile_pic %}
+                <img src="{{ post.user.profile.profile_pic.url }}" class="avatar">
+            {% else %}
+                <img src="{% static 'images/default-avatar.png' %}" class="avatar">
+            {% endif %}
+
+            <div>
+                <strong>{{ post.user.username }}</strong><br>
+                <small class="post-time">
+                    {{ post.created_at|timesince }} ago
+                </small>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- TEXT -->
+    {% if post.text %}
+        <div class="post-content">
+            {{ post.text }}
+        </div>
+    {% endif %}
+
+
+    <!-- MEDIA -->
+  <!-- ================= MEDIA SLIDER ================= -->
+{% if post.media.all %}
+<div class="relative group overflow-hidden rounded-xl bg-black">
+
+    <!-- SLIDER -->
+    <div id="slider-{{ post.id }}"
+         class="flex overflow-x-auto snap-x snap-mandatory scroll-smooth no-scrollbar">
+
+        {% for m in post.media.all %}
+            {% if m.is_video %}
+                <video class="w-full flex-shrink-0 snap-start object-cover max-h-[520px]"
+                       controls muted>
+                    <source src="{{ m.file.url }}">
+                </video>
+            {% else %}
+                <img src="{{ m.file.url }}"
+                     class="w-full flex-shrink-0 snap-start object-cover max-h-[520px]">
+            {% endif %}
+        {% endfor %}
+
+    </div>
+
+    <!-- IMAGE COUNTER -->
+    {% if post.media.count > 1 %}
+    <div id="counter-{{ post.id }}"
+         class="absolute bottom-3 right-3
+                bg-black/60 text-white text-xs px-3 py-1
+                rounded-full">
+         {{ post.media.count }}
+    </div>
+    {% endif %}
+
+    <!-- LEFT BUTTON -->
+    {% if post.media.count > 1 %}
+    <button onclick="slideMedia('{{ post.id }}', -1)"
+        class="absolute left-3 top-1/2 -translate-y-1/2
+               bg-black/50 text-white text-xl
+               w-10 h-10 rounded-full
+               flex items-center justify-center
+               opacity-0 group-hover:opacity-100
+               transition">
+        ❮
+    </button>
+
+    <!-- RIGHT BUTTON -->
+    <button onclick="slideMedia('{{ post.id }}', 1)"
+        class="absolute right-3 top-1/2 -translate-y-1/2
+               bg-black/50 text-white text-xl
+               w-10 h-10 rounded-full
+               flex items-center justify-center
+               opacity-0 group-hover:opacity-100
+               transition">
+        ❯
+    </button>
+    {% endif %}
+
+</div>
+{% endif %}
+
+
+
+    <!-- ACTIONS -->
+    <div class="post-actions">
+
+        <button class="action-btn like-btn {% if post.id in liked_posts %}liked{% endif %}"
+                data-like-url="{% url 'homepage:toggle_like' post.id %}">
+            ❤️ <span class="like-count">{{ post.likes.count }}</span>
+        </button>
+
+        <button class="action-btn"
+                onclick="toggleComments('{{ post.id }}')">
+            💬 Comment
+        </button>
+
+        <button class="action-btn share-btn"
+                data-url="{% url 'homepage:post_detail' post.id %}">
+            🔗 Share
+        </button>
+
+    </div>
+
+</div>

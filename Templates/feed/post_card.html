@@ -1,0 +1,85 @@
+{% load static %}
+
+<div class="bg-white rounded-xl shadow-sm mb-4">
+
+  <!-- HEADER -->
+  <div class="flex items-center justify-between p-3">
+    <div class="flex items-center gap-3">
+      {% if post.user.profile.profile_pic %}
+        <img src="{{ post.user.profile.profile_pic.url }}" class="avatar">
+      {% else %}
+        <img src="{% static 'images/default-avatar.png' %}" class="avatar">
+      {% endif %}
+
+      <div>
+        <p class="text-sm font-semibold">{{ post.user.username }}</p>
+        <p class="text-xs text-gray-500">{{ post.created_at|timesince }} ago</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- TEXT -->
+  {% if post.text %}
+    <p class="px-3 pb-2 text-sm">{{ post.text }}</p>
+  {% endif %}
+
+  <!-- MEDIA DATA SOURCE -->
+  {% if post.media.count %}
+    <div class="media-group"
+         data-post-id="{{ post.id }}"
+         data-media='[
+           {% for m in post.media.all %}
+             {"src":"{{ m.file.url }}","type":"{{ m.is_video|yesno:"video,image" }}"}{% if not forloop.last %},{% endif %}
+           {% endfor %}
+         ]'></div>
+  {% endif %}
+
+  <!-- MEDIA DISPLAY -->
+  <div class="post-media">
+    {% for m in post.media.all %}
+      {% if m.is_video %}
+        <video class="media-item"
+               data-post-id="{{ post.id }}"
+               data-index="{{ forloop.counter0 }}"
+               muted playsinline>
+          <source src="{{ m.file.url }}" type="video/mp4">
+        </video>
+      {% else %}
+        <img src="{{ m.file.url }}"
+             class="media-item"
+             data-post-id="{{ post.id }}"
+             data-index="{{ forloop.counter0 }}">
+      {% endif %}
+    {% endfor %}
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="post-actions">
+    <button class="like-btn {% if post.id in liked_posts %}liked{% endif %}"
+            data-like-url="{% url 'homepage:toggle_like' post.id %}">
+      ❤️ <span class="like-count">{{ post.likes.count }}</span>
+    </button>
+
+    <button onclick="toggleComments('{{ post.id }}')">💬 Comment</button>
+
+    <button class="share-btn"
+            data-url="{% url 'homepage:post_detail' post.id %}">
+      🔗 Share
+    </button>
+  </div>
+
+  <!-- COMMENTS -->
+  <div id="comments-{{ post.id }}" class="hidden px-3 pb-3">
+    {% for c in post.comments.all %}
+      <p class="text-xs"><b>{{ c.user.username }}</b> {{ c.text }}</p>
+    {% endfor %}
+
+    <form class="comment-form"
+          data-post-id="{{ post.id }}"
+          data-comment-url="{% url 'homepage:add_comment' post.id %}">
+      {% csrf_token %}
+      <input type="text" placeholder="Write a comment…" required>
+    </form>
+  </div>
+
+</div>

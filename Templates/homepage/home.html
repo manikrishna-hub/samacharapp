@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Home / Feed{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/home.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="max-w-2xl mx-auto px-4 py-4">
+
+    <!-- ================= PROFILE CARD ================= -->
+    <div class="bg-white rounded-xl shadow-md p-4 mb-6">
+
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+
+            <!-- LEFT -->
+            <div class="flex items-center gap-4">
+
+                {% if user.profile.profile_pic %}
+                    <img src="{{ user.profile.profile_pic.url }}"
+                         class="w-16 h-16 rounded-full object-cover border">
+                {% else %}
+                    <img src="{% static 'images/default-avatar.png' %}"
+                         class="w-16 h-16 rounded-full object-cover border">
+                {% endif %}
+
+                <div>
+                    <h2 class="text-lg font-semibold">
+                        Welcome, {{ user.username }} 👋
+                    </h2>
+
+                    <a href="{% url 'homepage:user_logout' %}"
+                       class="inline-block mt-2 text-sm px-4 py-1 
+                              border border-red-500 text-red-500 
+                              rounded-lg hover:bg-red-500 hover:text-white transition">
+                        Logout
+                    </a>
+                </div>
+
+            </div>
+
+            <!-- RIGHT -->
+            <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+
+                <a href="{% url 'homepage:view_follow_requests' %}"
+                   class="text-center px-4 py-2 text-sm font-medium 
+                          border border-blue-500 text-blue-600 
+                          rounded-lg hover:bg-blue-500 hover:text-white transition">
+                    🔔 Requests
+                </a>
+
+                <a href="{% url 'homepage:followers_list' user.id %}"
+                   class="text-center px-4 py-2 text-sm font-medium 
+                          border border-gray-400 text-gray-600 
+                          rounded-lg hover:bg-gray-500 hover:text-white transition">
+                    👥 Network
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= CREATE POST ================= -->
+    <div class="bg-white rounded-xl shadow-sm p-4 mb-6">
+
+        <h3 class="text-base font-semibold mb-3">
+            Create a New Post
+        </h3>
+
+     <form method="POST"
+      enctype="multipart/form-data"
+      action="{% url 'homepage:create_post' %}"
+      class="space-y-3">
+
+    {% csrf_token %}
+
+    <textarea name="text"
+              placeholder="What's on your mind?"
+              rows="2"
+              class="w-full border rounded-lg px-3 py-2 text-sm
+                     focus:outline-none focus:ring-2 focus:ring-[#0C6585]"></textarea>
+
+     <label class="text-sm font-medium">Upload Image or Video</label>
+       <input type="file"
+             name="media"
+             multiple
+             accept="image/*,video/*"
+             class="w-full border rounded-lg px-3 py-2 text-sm">
+
+
+    <!-- Background -->
+    <select name="bg_color"
+            class="w-full text-sm border rounded-lg px-3 py-2">
+        <option value="">White (Default)</option>
+        <option value="bg1">Blue</option>
+        <option value="bg2">Purple</option>
+        <option value="bg3">Orange</option>
+        <option value="bg4">Dark</option>
+    </select>
+
+    <!-- Font -->
+    <select name="font_style"
+            class="w-full text-sm border rounded-lg px-3 py-2">
+        <option value="normal">Normal</option>
+        <option value="bold">Bold</option>
+        <option value="italic">Italic</option>
+        <option value="bolditalic">Bold + Italic</option>
+    </select>
+
+    <!-- Visibility -->
+    <select name="visibility"
+            class="w-full text-sm border rounded-lg px-3 py-2">
+        <option value="public">🌍 Public</option>
+        <option value="private">🔒 Private</option>
+    </select>
+
+    <button type="submit"
+            class="w-full bg-[#0C6585] text-white
+                   py-2.5 text-sm font-semibold
+                   rounded-lg hover:bg-[#094e66]
+                   transition duration-200">
+        Post
+    </button>
+
+</form>
+        
+
+    </div>
+
+
+    <!-- ================= FEED ================= -->
+    <h4 class="text-lg font-semibold mb-4">
+        Your Feed
+    </h4>
+
+    <div class="space-y-5">
+        {% for post in posts %}
+            {% include 'homepage/post_card.html' %}
+        {% empty %}
+            <div class="text-center text-gray-500 py-10">
+                No posts yet.
+            </div>
+        {% endfor %}
+    </div>
+
+</div>
+
+
+<!-- ================= GLOBAL MEDIA MODAL (ONLY ONE) ================= -->
+<div id="mediaModal" class="media-modal">
+
+    <span class="close-btn" onclick="closeMediaModal()">&times;</span>
+
+    <button class="nav-btn prev" onclick="prevMedia()">❮</button>
+
+    <div id="modalContent" class="modal-content"></div>
+
+    <button class="nav-btn next" onclick="nextMedia()">❯</button>
+
+</div>
+
+{% endblock %}

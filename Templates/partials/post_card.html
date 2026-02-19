@@ -1,0 +1,143 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'home/css/home.css' %}">
+
+
+<div class="bg-white rounded-xl shadow-sm mb-4">
+
+  <!-- HEADER -->
+  <div class="flex items-center justify-between p-3">
+    <div class="flex items-center gap-3">
+      {% if post.user.profile.profile_pic %}
+        <img src="{{ post.user.profile.profile_pic.url }}" class="avatar">
+      {% else %}
+        <img src="{% static 'images/default-avatar.png' %}" class="avatar">
+      {% endif %}
+
+      <div>
+        <p class="text-sm font-semibold">{{ post.user.username }}</p>
+        <p class="text-xs text-gray-500">{{ post.created_at|timesince }} ago</p>
+      </div>
+    </div>
+
+    {% if post.user != user %}
+      {% if post.user.id in following_user_ids %}
+        <form method="POST" action="{% url 'unfollow_user' post.user.id %}">
+          {% csrf_token %}
+          <button class="text-xs text-red-500 border px-3 py-1 rounded-full">Unfollow</button>
+        </form>
+      {% else %}
+        <form method="POST" action="{% url 'send_follow_request' post.user.id %}">
+          {% csrf_token %}
+          <button class="text-xs text-blue-600 border px-3 py-1 rounded-full">Follow</button>
+        </form>
+      {% endif %}
+    {% endif %}
+  </div>
+
+  <!-- TEXT -->
+  {% if post.text %}
+    <p class="px-3 pb-2 text-sm">{{ post.text }}</p>
+  {% endif %}
+
+  <!-- MEDIA GROUP DATA (REQUIRED) -->
+
+{% if post.media.count > 0 %}
+<div
+  class="media-group"
+  data-post-id="{{ post.id }}"
+  data-media='[
+    {% for m in post.media.all %}
+      {"src":"{{ m.file.url }}","type":"{{ m.is_video|yesno:"video,image" }}"}{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ]'
+></div>
+{% endif %}
+
+
+  <!-- MEDIA -->
+  {% if post.media.count > 0 %}
+  <div class="post-media">
+
+    {% if post.media.count == 1 %}
+      {% with m=post.media.first %}
+        {% if m.is_video %}
+          <video muted playsinline
+                 class="fb-single media-item"
+                 data-post-id="{{ post.id }}"
+                 data-index="0">
+            <source src="{{ m.file.url }}" type="video/mp4">
+          </video>
+        {% else %}
+          <img src="{{ m.file.url }}"
+               class="fb-single media-item"
+               data-post-id="{{ post.id }}"
+               data-index="0">
+        {% endif %}
+      {% endwith %}
+
+    {% else %}
+      <div class="fb-grid fb-{{ post.media.count|default:2 }}">
+        {% for m in post.media.all %}
+          {% if m.is_video %}
+            <video muted playsinline
+                   class="media-item {% if forloop.first %}fb-large{% endif %}"
+                   data-post-id="{{ post.id }}"
+                   data-index="{{ forloop.counter0 }}">
+              <source src="{{ m.file.url }}" type="video/mp4">
+            </video>
+          {% else %}
+            <img src="{{ m.file.url }}"
+                 class="media-item {% if forloop.first %}fb-large{% endif %}"
+                 data-post-id="{{ post.id }}"
+                 data-index="{{ forloop.counter0 }}">
+          {% endif %}
+        {% endfor %}
+      </div>
+    {% endif %}
+
+  </div>
+  {% endif %}
+
+  <!-- ACTIONS -->
+  <div class="post-actions">
+    <button
+  class="action-btn like-btn {% if post.id in liked_posts %}liked{% endif %}"
+  data-post-id="{{ post.id }}">❤️ <span class="like-count">{{ post.likes.count }}</span>
+</button>
+   
+<button
+  class="action-btn"
+  onclick="toggleComments('{{ post.id }}')">
+  💬 Comment
+</button>
+
+<div id="comments-{{ post.id }}" class="hidden">
+  <form class="comment-form" data-post-id="{{ post.id }}">
+    {% csrf_token %}
+    <input
+      type="text"
+      name="text"
+      placeholder="Write a comment..."
+      class="comment-input"
+      required
+    >
+  </form>
+</div>
+
+  
+<button
+  class="action-btn share-btn"
+  data-url="{% url 'post_detail' post.id %}">  🔗 Share
+</button>
+
+  </div>
+
+  <!-- COMMENTS -->
+  <div id="comments-{{ post.id }}" class="hidden px-3 pb-3 space-y-2">
+    {% for c in post.comments.all %}
+      <p class="text-xs"><b>{{ c.user.username }}</b> {{ c.text }}</p>
+    {% endfor %}
+  </div>
+
+</div>
+

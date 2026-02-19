@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Notifications{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width:700px; margin:auto;">
+
+    <h2>🔔 Notifications</h2>
+    <hr>
+
+    {% if notes %}
+        <ul style="list-style:none; padding:0;">
+            {% for n in notes %}
+                <li style="margin:12px 0; padding:10px; background: {% if n.is_read %}#f8f9fa{% else %}#e6f7ff{% endif %}; border-radius:8px;">
+                    <strong>{{ n.from_user.username }}</strong> {{ n.verb }}
+                    {% if n.target_post %}
+                        — <a href="{% url 'post_detail' n.target_post.id %}" style="color:#007bff;">View Post</a>
+                    {% endif %}
+                    <br>
+                    <small style="color:#555;">{{ n.created_at|date:"M d, Y H:i" }}</small>
+
+                    {% if not n.is_read %}
+                        <a href="{% url 'mark_notification_read' n.id %}" style="float:right; font-size:13px;">Mark as Read</a>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No notifications yet 🎉</p>
+    {% endif %}
+
+</div>
+{% endblock %}

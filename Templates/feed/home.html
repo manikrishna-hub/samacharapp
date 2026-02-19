@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Home / Feed{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+  <!-- Profile Header -->
+  <div class="d-flex align-items-center justify-content-between bg-white p-3 rounded shadow-sm mb-3">
+    <div class="d-flex align-items-center">
+      {% if user.profile.profile_pic %}
+        <img src="{{ user.profile.profile_pic.url }}"
+             class="rounded-circle me-3"
+             style="width:70px; height:70px; object-fit:cover;">
+      {% else %}
+        <img src="{% static 'images/default-avatar.png' %}"
+             class="rounded-circle me-3"
+             style="width:70px; height:70px; object-fit:cover;">
+      {% endif %}
+
+      <div>
+        <h5 class="mb-1">Welcome, {{ user.username }} 👋</h5>
+        <a href="{% url 'homepage:user_logout' %}" class="btn btn-outline-danger btn-sm">Logout</a>
+      </div>
+    </div>
+
+    <div>
+      <a href="{% url 'homepage:view_follow_requests' %}" class="btn btn-outline-primary btn-sm ms-2">
+        🔔 Follow Requests
+      </a>
+      <a href="{% url 'homepage:followers_list' user.id %}"
+         class="btn btn-outline-secondary btn-sm">
+         👥 My Network
+      </a>
+    </div>
+  </div>
+
+  <!-- Create Post -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <h5 class="card-title">Create a New Post</h5>
+
+      <form method="POST" enctype="multipart/form-data"
+            action="{% url 'homepage:create_post' %}">
+        {% csrf_token %}
+
+        <textarea name="text"
+                  class="form-control mb-3"
+                  placeholder="What's on your mind?"
+                  rows="2"></textarea>
+
+        <label class="form-label">Upload Photos/Videos</label>
+        <input type="file"
+               name="media_files"
+               accept="image/*,video/*"
+               multiple
+               class="form-control mb-3">
+
+        <label class="form-label">Who can see this post?</label>
+        <select name="visibility" class="form-select mb-3">
+          <option value="public">🌍 Public</option>
+          <option value="private">🔒 Private</option>
+        </select>
+
+        <button type="submit" class="btn btn-primary w-100">
+          Post
+        </button>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- Feed -->
+  <h4 class="mb-3">Your Feed</h4>
+
+  {% for post in posts %}
+    {% include 'partials/post_card.html' %}
+  {% endfor %}
+
+</div>
+
+{% endblock %}

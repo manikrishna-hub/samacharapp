@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container">
+  <h2>Search Friends</h2>
+  <form method="GET">
+    <input type="text" name="q" placeholder="Search users..." value="{{ query }}">
+    <button type="submit">Search</button>
+  </form>
+
+  {% if users %}
+  <ul>
+    {% for u in users %}
+      <li style="margin:10px 0;">
+        {{ u.username }}
+        {% if u.id in following_ids %}
+          <form method="POST" action="{% url 'unfollow_user' u.id %}" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline-danger">Unfollow</button>
+          </form>
+        {% else %}
+          <form method="POST" action="{% url 'follow_user' u.id %}" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline-primary">Follow</button>
+          </form>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</div>
+{% endblock %}

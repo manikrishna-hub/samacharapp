@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container" style="max-width:600px; margin-top:40px;">
+
+    <div class="card shadow-sm p-4 text-center">
+
+        <h3 class="mb-3 text-danger">Delete Post</h3>
+
+        <p class="mb-4">Are you sure you want to delete this post permanently?</p>
+
+        <!-- Post content preview -->
+        {% if post.text %}
+            <p class="fw-bold">{{ post.text }}</p>
+        {% endif %}
+
+        {% if post.image %}
+            <img src="{{ post.image.url }}" 
+                 style="width:200px; height:auto; border-radius:8px; margin-top:10px;">
+        {% endif %}
+
+        {% if post.video %}
+            <video controls style="width:250px; margin-top:10px; border-radius:8px;">
+                <source src="{{ post.video.url }}" type="video/mp4">
+            </video>
+        {% endif %}
+
+        <form method="POST" class="mt-4">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger px-4">Yes, Delete</button>
+            <a href="{% url 'home' %}" class="btn btn-secondary ms-2">Cancel</a>
+        </form>
+
+    </div>
+
+</div>
+{% endblock %}

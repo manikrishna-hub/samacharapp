@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4" style="max-width:600px;">
+  <h3>{{ profile_user.username }}'s Connections</h3>
+  <hr>
+
+  <h5>Followers</h5>
+  <ul class="list-group mb-3">
+    {% for f in followers %}
+      <li class="list-group-item">{{ f.follower.username }}</li>
+    {% empty %}
+      <li class="list-group-item text-muted">No followers yet.</li>
+    {% endfor %}
+  </ul>
+
+  <h5>Following</h5>
+  <ul class="list-group">
+    {% for f in following %}
+      <li class="list-group-item">{{ f.following.username }}</li>
+    {% empty %}
+      <li class="list-group-item text-muted">Not following anyone yet.</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}

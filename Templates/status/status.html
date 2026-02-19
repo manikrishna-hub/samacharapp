@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Status{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/status.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="status-page">
+
+  <!-- ================= HEADER ================= -->
+  <header class="status-header">
+    <h2>Status</h2>
+  </header>
+
+  <!-- ================= MY STATUS ================= -->
+  <a href="{% url 'status:upload_status' %}" class="status-card my-status">
+
+    <div class="avatar-wrapper">
+      {% if request.user.profile.profile_pic %}
+        <img
+          src="{{ request.user.profile.profile_pic.url }}"
+          class="avatar"
+          alt="{{ request.user.username }}"
+        >
+      {% else %}
+        <img
+          src="{% static 'images/default-avatar.png' %}"
+          class="avatar"
+          alt="Default Avatar"
+        >
+      {% endif %}
+      <span class="add-icon">+</span>
+    </div>
+
+    <div class="status-info">
+      <p class="profile-name"><strong>{{ request.user.username }}</strong></p>
+      <p class="status-text">Tap to add status</p>
+    </div>
+
+  </a>
+
+  <!-- ================= RECENT UPDATES ================= -->
+  <p class="recent-title">Recent updates</p>
+
+{% for status in statuses %}
+<a href="{% url 'status:status_viewer' status.user.id %}" class="status-card">
+
+  <div class="avatar-ring">
+    {% if status.user.profile.profile_pic %}
+      <img
+        src="{{ status.user.profile.profile_pic.url }}"
+        class="avatar"
+        alt="{{ status.user.username }}"
+      >
+    {% else %}
+      <img
+        src="{% static 'images/default-avatar.png' %}"
+        class="avatar"
+        alt="Default Avatar"
+      >
+    {% endif %}
+  </div>
+
+  <div class="status-info">
+    <p class="profile-name"><strong>{{ status.user.username }}</strong></p>
+    <p class="status-time">
+      {{ status.created_at|timesince }} ago
+    </p>
+  </div>
+
+</a>
+{% empty %}
+  <p class="empty-text">No recent updates</p>
+{% endfor %}
+
+
+</div>
+{% endblock %}

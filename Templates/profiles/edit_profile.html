@@ -1,0 +1,50 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Profile</title>
+</head>
+<body>
+{% block content %}
+<div class="container">
+    <h2>Edit Profile</h2>
+
+		 <form method="POST" enctype="multipart/form-data">
+	             {% csrf_token %}
+	
+		 <!-- Cover Picture Section -->
+    	<label>Cover Picture:</label><br>
+   	 {% if profile.cover_picture %}
+        	<img src="{{ profile.cover_picture.url }}" alt="Cover Picture" width="400" height="150"><br>
+    	{% else %}
+        	<img src="{% static 'images/default-cover.jpg' %}" alt="Default Cover" width="400" height="150">
+    	 {% endif %}
+        
+                <input type="file" name="cover_picture"><br><br>
+
+    	
+        <!-- Bio Field -->
+        <label>Bio:</label><br>
+        <textarea name="bio" rows="3" cols="40">{{ profile.bio }}</textarea><br><br>
+
+        <!-- Profile Picture -->
+        <label>Profile Picture:</label><br>
+        {% if profile.profile_pic %}
+            <img src="{{ profile.profile_pic.url }}" alt="Profile Picture" width="120" height="120"><br>
+        {% else %}
+            <img src="{% static 'images/default-avatar.png' %}" alt="Default Picture" width="120" height="120"><br>
+        {% endif %}
+
+        <!-- File Upload -->
+        <input type="file" name="profile_pic"><br><br>
+
+        <!-- Save Button -->
+        <button type="submit">Save</button>
+    </form>
+
+    <br>
+    <a href="{% url 'feed' %}">Back to Feed</a>
+</div>
+{% endblock %}
+</body>
+</html>

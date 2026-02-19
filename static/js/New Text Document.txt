@@ -1,0 +1,34 @@
+// ================= PROFILE TABS =================
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const postsTab = document.getElementById("postsTab");
+    const reelsTab = document.getElementById("reelsTab");
+    const postsSection = document.getElementById("postsSection");
+    const reelsSection = document.getElementById("reelsSection");
+
+    if (!postsTab || !reelsTab) return;
+
+    postsTab.addEventListener("click", function () {
+        postsSection.classList.remove("hidden");
+        reelsSection.classList.add("hidden");
+
+        postsTab.classList.add("border-black", "text-black");
+        postsTab.classList.remove("text-gray-400");
+
+        reelsTab.classList.remove("border-black", "text-black");
+        reelsTab.classList.add("text-gray-400");
+    });
+
+    reelsTab.addEventListener("click", function () {
+        reelsSection.classList.remove("hidden");
+        postsSection.classList.add("hidden");
+
+        reelsTab.classList.add("border-black", "text-black");
+        reelsTab.classList.remove("text-gray-400");
+
+        postsTab.classList.remove("border-black", "text-black");
+        postsTab.classList.add("text-gray-400");
+    });
+
+});

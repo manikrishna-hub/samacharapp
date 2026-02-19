@@ -1,0 +1,62 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Audio Call</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="{% static 'css/call.css' %}">
+
+  <style>
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <h3 class="call-title">{{ request.user.username }}</h3>
+
+<!-- VIDEO AREA -->
+<div class="video-container">
+  <!-- Local self video -->
+  <video id="localVideo" autoplay muted playsinline></video>
+
+  <!-- Remote user video -->
+  <video id="remoteVideo" autoplay playsinline></video>
+</div>
+  
+ 
+  
+   <!-- AUDIO OUTPUT -->
+  <audio id="remoteAudio" autoplay playsinline></audio>
+	
+  <!-- RECEIVER CONTROLS -->
+  <div id="incomingControls" class="call-controls" hidden>
+    <button id="acceptBtn" class="accept-btn">Accept</button>
+    <button id="rejectBtn" class="reject-btn">Reject</button>
+  </div>
+
+  <!-- ACTIVE CALL CONTROLS -->
+  <div id="activeControls" class="call-controls" hidden>
+    <button id="hangupBtn" class="hangup-btn">End Call</button>
+  </div>
+
+  <!-- SOUNDS -->
+  <audio id="ringtone" loop src="{% static 'sounds/incoming_call.mp3' %}"></audio>
+  <audio id="ringbackTone" loop src="{% static 'sounds/outgoing_call.mp3' %}"></audio>
+
+  <!-- DATA FOR call.js -->
+  <div id="chat-data"
+       data-call-id="{{ call_id }}"
+       data-role="{{ role }}"
+       data-conv-id="{{ conv_id }}">
+  </div>
+
+ <!--------timer---------->
+ <div id="callTimer" class="call-timer">00:00</div>
+
+  <script src="{% static 'js/call.js' %}"></script>
+</body>
+</html>

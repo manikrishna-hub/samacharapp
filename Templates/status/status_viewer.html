@@ -1,0 +1,109 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Status Viewer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="{% static 'css/status.css' %}">
+</head>
+<body>
+
+<div class="status-viewer">
+
+  <!-- PROGRESS BARS -->
+  <div class="progress-container">
+    {% for status in statuses %}
+      <div class="progress-bar">
+        <div class="progress-fill" data-index="{{ forloop.counter0 }}"></div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- STATUS SLIDES -->
+  {% for status in statuses %}
+  
+  <div
+    class="status-slide {% if forloop.first %}active{% endif %}"
+    data-index="{{ forloop.counter0 }}"
+    data-status-id="{{ status.id }}"
+  >
+<!-- HEADER -->
+<div class="viewer-header">
+  <div class="viewer-left">
+
+    {% if status.user.profile.profile_pic %}
+      <img
+        src="{{ status.user.profile.profile_pic.url }}"
+        class="viewer-avatar"
+        alt="profile"
+        loading="lazy"
+      >
+    {% else %}
+      <img
+        src="{% static 'images/default-avatar.png' %}"
+        class="viewer-avatar"
+        alt="default profile"
+        loading="lazy"
+      >
+    {% endif %}
+
+    <div class="viewer-user">
+      <strong>{{ status.user.username }}</strong>
+      <small>{{ status.created_at|timesince }} ago</small>
+    </div>
+  </div>
+
+  {% if request.user == status.user %}
+    <a href="{% url 'status:status_seen_list' status.id %}" class="seen-count">
+      👁 {{ status.seen_by.count }}
+    </a>
+  {% endif %}
+</div>
+
+<!-- MEDIA -->
+<div class="viewer-media" data-type="{% if status.is_video %}video{% else %}image{% endif %}">
+  {% if status.media %}
+    {% if status.is_video %}
+      <video
+        src="{{ status.media.url }}"
+        muted
+        playsinline
+        preload="metadata"
+      ></video>
+    {% else %}
+      <img
+        src="{{ status.media.url }}"
+        alt="status image"
+        loading="lazy"
+      >
+    {% endif %}
+  {% endif %}
+</div>
+
+
+  </div>
+  {% endfor %}
+
+  <!-- CLOSE -->
+  <a href="{% url 'status:status_page' %}" class="close-btn">✕</a>
+
+</div>
+
+<!-- JS -->
+<script src="{% static 'js/status_progress.js' %}"></script>
+
+<!-- SEEN TRACKING -->
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const firstSlide = document.querySelector(".status-slide.active");
+    if (firstSlide) {
+      const statusId = firstSlide.dataset.statusId;
+      fetch(`/status/status/${statusId}/`);
+    }
+  });
+</script>
+
+</body>
+</html>

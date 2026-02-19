@@ -1,0 +1,343 @@
+/* =====================================================
+   COMMON
+===================================================== */
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: black;
+  overflow: hidden;
+}
+
+.avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* =====================================================
+   STATUS LIST PAGE
+===================================================== */
+
+.status-page {
+  min-height: 100vh;
+  background: #f3f4f6;
+}
+
+.status-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #fff;
+  padding: 12px 16px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.status-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  background: #fff;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+}
+
+.status-card:hover {
+  background: #f9fafb;
+}
+
+.avatar-wrapper {
+  position: relative;
+}
+
+.avatar-ring {
+  border: 2px solid #22c55e;
+  padding: 2px;
+  border-radius: 50%;
+}
+
+.add-icon {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 20px;
+  height: 20px;
+  background: #22c55e;
+  color: #fff;
+  border-radius: 50%;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.status-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-name {
+  font-size: 15px;
+}
+
+.status-time,
+.status-text {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.recent-title {
+  padding: 8px 16px;
+  font-size: 13px;
+  color: #6b7280;
+  background: #f9fafb;
+}
+
+/* =====================================================
+   UPLOAD STATUS PAGE
+===================================================== */
+
+.status-upload-page {
+  min-height: 100vh;
+  background: #f3f4f6;
+}
+
+.status-upload-page .status-header {
+  position: sticky;
+  top: 0;
+  background: #fff;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.back-btn {
+  font-size: 18px;
+  color: #111827;
+  text-decoration: none;
+}
+
+.status-upload-form {
+  padding: 16px;
+}
+
+.media-preview {
+  width: 100%;
+  height: 280px;
+  background: #fff;
+  border: 2px dashed #e5e7eb;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.media-preview img,
+.media-preview video {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.status-textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  resize: none;
+}
+
+.status-textarea:focus {
+  outline: none;
+  border-color: #22c55e;
+}
+
+.post-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  background: #22c55e;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.post-btn:hover {
+  background: #16a34a;
+}
+
+/* =====================================================
+   STATUS VIEWER (WHATSAPP STYLE)
+===================================================== */
+
+.status-viewer {
+  position: fixed;
+  inset: 0;
+  background: black;
+  overflow: hidden;
+}
+
+/* SLIDES */
+.status-slide {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+}
+
+.status-slide.active {
+  display: flex;
+}
+/* HEADER */
+.viewer-header {
+  height: 72px;                 /* increased height */
+  padding: 6px 12px;            /* ⬅ final top & bottom padding */
+  display: flex;
+  align-items: center;
+  background: linear-gradient(
+    to bottom,
+    rgba(0,0,0,0.85),
+    rgba(0,0,0,0)
+  );
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+}
+
+/* HEADER CONTENT */
+.viewer-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: white;
+  margin-top: -1px;
+  
+}
+
+/* 🔥 ONLY CHANGE: PROFILE PIC SIZE INCREASED */
+.viewer-avatar {
+  width: 64px;        /* ⬅ increased */
+  height: 64px;       /* ⬅ increased */
+  min-width: 64px;
+  min-height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #22c55e;
+
+  margin-top: 4px;   /* ✅ NEW – pushes avatar down */
+}
+
+.viewer-user {
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+}
+
+.viewer-user strong {
+  font-size: 15px;
+}
+
+.viewer-user small {
+  font-size: 12px;
+  color: #cfcfcf;
+}
+
+/* MEDIA AREA */
+.viewer-media {
+  position: absolute;
+   inset: 0;
+    z-index: 1;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: black;
+}
+
+/* IMAGE & VIDEO */
+.viewer-media img,
+.viewer-media video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* CLOSE BUTTON */
+.close-btn {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  font-size: 26px;
+  color: white;
+  text-decoration: none;
+  z-index: 20;
+  font-weight: 300;
+  opacity: 0.9;
+}
+
+/* DESKTOP FIX */
+@media (min-width: 900px) {
+  .viewer-media img,
+  .viewer-media video {
+    max-width: 420px;
+    margin: auto;
+  }
+}
+
+
+
+/* ===============================
+   PROGRESS BAR (WHATSAPP STYLE)
+================================ */
+
+.progress-container {
+  
+  position: absolute;
+  top: 4px;          /* stays at very top */
+  left: 8px;
+  right: 8px;
+  display: flex;
+  gap: 4px;
+  padding: 8px;
+  z-index: 30;
+}
+.progress-bar {
+  flex: 1;
+  height: 3px;
+  background: rgba(255,255,255,0.3);
+  overflow: hidden;
+  border-radius: 2px;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: white;
+  transition: width 0.1s linear;
+}
+.viewer-header {
+  z-index: 10;
+}
+
+.progress-container {
+  z-index: 20;
+}
+
+.close-btn {
+  z-index: 30;
+}
+

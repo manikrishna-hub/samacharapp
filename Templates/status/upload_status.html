@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}New Status{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-100">
+
+  <!-- HEADER -->
+  <div class="sticky top-0 z-10 bg-white shadow px-4 py-3 flex items-center gap-3">
+    <a href="{% url 'status:status_page' %}" class="text-gray-800 text-lg">
+      <i class="fa-solid fa-arrow-left"></i>
+    </a>
+    <h2 class="text-sm font-semibold">New Status</h2>
+  </div>
+
+  <!-- FORM -->
+  <form method="POST" enctype="multipart/form-data" class="p-4 space-y-4">
+    {% csrf_token %}
+
+    <!-- ✅ MEDIA PREVIEW (ONLY ONE — CORRECT) -->
+    <label
+      for="mediaInput"
+      id="mediaPreview"
+      class="w-full h-64 md:h-72 bg-white border-2 border-dashed border-gray-300
+             rounded-xl flex flex-col items-center justify-center
+             text-gray-400 cursor-pointer overflow-hidden
+             hover:border-green-400 hover:text-green-500 transition"
+    >
+      <i class="fa-regular fa-image text-3xl mb-2"></i>
+      <span class="text-sm">Tap to select image or video</span>
+    </label>
+
+   <!-- ✅ FILE INPUT (ADD HERE — THIS IS THE PATH/PLACE) -->
+  <input
+    type="file"
+    name="media"
+    id="mediaInput"
+    accept="image/*,video/*"
+    class="hidden"
+    required
+  />
+
+
+    <!-- CAPTION -->
+    <textarea
+      name="text"
+      placeholder="Write a caption..."
+      class="w-full min-h-[90px] p-3 rounded-lg border border-gray-300
+             text-sm resize-none focus:outline-none focus:ring-2
+             focus:ring-green-500"
+    ></textarea>
+
+    <!-- POST BUTTON -->
+    <div class="pt-2">
+      <button
+        type="submit"
+        id="postBtn"
+        disabled
+        class="w-full py-3 rounded-lg font-semibold text-white
+               bg-green-400 cursor-not-allowed transition"
+      >
+        Post Status
+      </button>
+    </div>
+
+  </form>
+</div>
+
+<!-- JS -->
+<script src="{% static 'js/status_upload.js' %}"></script>
+{% endblock %}

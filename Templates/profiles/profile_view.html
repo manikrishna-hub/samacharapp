@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% load static %}
+<link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
+
+{% block content %}
+
+<!-- PROFILE HEADER -->
+<div class="max-w-6xl xl:max-w-7xl mx-auto px-6 text-center py-6">
+
+    <h2 class="text-2xl font-semibold">@{{ user_obj.username }}</h2>
+
+    {% if profile.profile_pic %}
+        <img src="{{ profile.profile_pic.url }}"
+             class="mx-auto mt-4 rounded-full object-cover"
+             style="width:150px; height:150px;">
+    {% else %}
+        <img src="{% static 'images/default-avatar.png' %}"
+             class="mx-auto mt-4 rounded-full object-cover"
+             style="width:150px; height:150px;">
+    {% endif %}
+
+    <p class="mt-3">
+        <strong>Bio:</strong> {{ profile.bio|default:"No bio yet." }}
+    </p>
+
+    <div class="my-3">
+        <span><strong>{{ followers_count }}</strong> Followers</span> |
+        <span><strong>{{ following_count }}</strong> Following</span>
+    </div>
+
+</div>
+
+
+<!-- TABS -->
+<div class="mt-6">
+    <div class="flex justify-start items-center gap-8 border-b border-gray-300 px-4">
+
+        <button id="postsTab"
+                class="py-3 font-semibold border-b-2 border-black text-black">
+            📸 Posts
+        </button>
+
+        <div class="h-5 w-px bg-gray-300"></div>
+
+        <button id="reelsTab"
+                class="py-3 font-semibold text-gray-400">
+            🎬 Reels
+        </button>
+
+    </div>
+</div>
+
+
+<!-- POSTS SECTION -->
+<div id="postsSection"
+     class="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 mt-6">
+
+    {% for post in posts %}
+    {% if post.media.exists %}
+    <div class="cursor-pointer"
+         onclick="openPostModal({{ forloop.counter0 }})">
+        
+        {% with first=post.media.first %}
+            {% if first.is_video %}
+                <video src="{{ first.file.url }}"
+                       class="w-full h-40 object-cover"
+                       muted></video>
+            {% else %}
+                <img src="{{ first.file.url }}"
+                     class="w-full h-40 object-cover">
+            {% endif %}
+        {% endwith %}
+
+    </div>
+    {% endif %}
+{% endfor %}
+
+
+
+</div>
+
+
+<!-- REELS SECTION -->
+<div id="reelsSection"
+     class="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 mt-6 hidden">
+
+    {% for reel in reels %}
+    <div class="cursor-pointer">
+
+        <video src="{{ reel.video.url }}"
+               class="w-full h-40 object-cover rounded-md"
+               muted></video>
+
+        <div class="absolute top-2 right-2 text-white text-sm bg-black/60 px-2 py-1 rounded">
+            🎬 Reel
+        </div>
+
+    </div>
+    {% empty %}
+        <p>No reels yet.</p>
+    {% endfor %}
+
+</div>
+
+<!-- POST MODAL -->
+<div id="postModal"
+     class="fixed inset-0 bg-black bg-opacity-90 hidden z-50">
+
+    <!-- CLOSE -->
+    <span onclick="closePostModal()"
+          class="absolute top-6 right-8 text-white text-4xl cursor-pointer z-50">
+        &times;
+    </span>
+
+    <!-- LEFT ARROW -->
+    <button onclick="prevPost()"
+        class="fixed left-6 top-1/2 -translate-y-1/2 
+               text-white text-5xl z-50 
+               bg-black/50 px-4 py-2 rounded-full 
+               hover:bg-black/70 transition">
+        &#10094;
+    </button>
+
+    <!-- RIGHT ARROW -->
+    <button onclick="nextPost()"
+        class="fixed right-6 top-1/2 -translate-y-1/2 
+               text-white text-5xl z-50 
+               bg-black/50 px-4 py-2 rounded-full 
+               hover:bg-black/70 transition">
+        &#10095;
+    </button>
+
+    <!-- CENTER CONTENT -->
+    <div class="flex items-center justify-center h-full">
+        <div id="postModalContent"
+             class="max-w-4xl w-full flex justify-center items-center px-4">
+        </div>
+    </div>
+
+</div>
+
+
+
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'js/profile.js' %}"></script>
+{% endblock %}
+

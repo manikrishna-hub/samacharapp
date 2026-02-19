@@ -1,0 +1,5 @@
+{% for status in statuses %}
+  <a href="{% url 'status:status_view' status.id %}">
+    {{ status.user.username }}
+  </a>
+{% endfor %}

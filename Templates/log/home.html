@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Home / Feed{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'feed/css/home.css' %}">
+
+<div class="page-container">
+
+  <!-- HEADER -->
+  <div class="bg-white p-3 rounded-xl shadow-sm flex items-center justify-between">
+    <div class="flex items-center gap-3">
+    {% if user.profile.profile_pic %}
+  <img src="{{ user.profile.profile_pic.url }}" class="avatar">
+{% else %}
+  <img src="{% static 'images/default-avatar.png' %}" class="avatar">
+{% endif %}
+
+      <div>
+        <p class="text-sm font-semibold">Welcome, {{ user.username }}</p>
+        <a href="{% url 'feed:logout' %}" class="text-xs text-red-500">Logout</a>
+      </div>
+    </div>
+
+    <div class="flex gap-4">
+      <a href="{% url 'feed:notifications' %}">🔔</a>
+      <a href="{% url 'feed:followers_list' user.id %}">👥</a>
+    </div>
+  </div>
+
+  <!-- CREATE POST -->
+  <div class="bg-white p-3 rounded-xl shadow-sm">
+    <form method="POST" enctype="multipart/form-data" action="{% url 'feed:create_post' %}">
+      {% csrf_token %}
+
+      <div class="flex items-center gap-3">
+        <img
+          src="{{ user.profile.profile_pic.url|default:'/static/images/default-avatar.png' }}"
+          class="avatar"
+        >
+        <input
+          name="text"
+          class="flex-1 bg-gray-100 rounded-full px-4 py-2 text-sm"
+          placeholder="What's on your mind?"
+          required
+        >
+      </div>
+
+      <label class="block mt-2 text-sm cursor-pointer">
+        📷 Photo / 🎥 Video
+        <input type="file" name="media_files" accept="image/*,video/*" multiple hidden>
+      </label>
+
+      <button class="post-btn mt-3 w-full py-2 rounded-lg">Post</button>
+    </form>
+  </div>
+
+  <!-- FEED -->
+  <h4 class="text-sm font-semibold mt-4">Your Feed</h4>
+
+  {% for post in posts %}
+    {% include 'home/post_card.html' %}
+  {% empty %}
+    <p class="text-center text-gray-400 text-sm">No posts yet</p>
+  {% endfor %}
+
+</div>
+
+<!-- MEDIA POPUP MODAL -->
+<div id="mediaModal" class="media-modal">
+  <span class="close-btn" onclick="closeMediaModal()">×</span>
+  <button class="nav-btn prev" onclick="prevMedia()">❮</button>
+  <button class="nav-btn next" onclick="nextMedia()">❯</button>
+  <div class="modal-content" id="modalContent"></div>
+</div>
+
+<script src="{% static 'js/home.js' %}"></script>
+{% endblock %}

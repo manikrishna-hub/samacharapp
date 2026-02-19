@@ -1,0 +1,39 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Status</title>
+  <link rel="stylesheet" href="{% static 'css/status_viewer.css' %}">
+</head>
+
+<body class="status-viewer">
+
+{% for status in statuses %}
+  <div class="status-slide">
+
+    <!-- Header -->
+    <div class="viewer-header">
+      <img src="{{ status.user.profile.profile_pic.url }}" class="viewer-avatar">
+      <div>
+        <strong>{{ status.user.username }}</strong>
+        <small>{{ status.created_at|timesince }} ago</small>
+      </div>
+    </div>
+
+    <!-- Media -->
+    {% if status.media %}
+      {% if status.media.url|lower|endswith:".mp4" %}
+        <video src="{{ status.media.url }}" autoplay controls></video>
+      {% else %}
+        <img src="{{ status.media.url }}">
+      {% endif %}
+    {% endif %}
+
+  </div>
+{% endfor %}
+
+<a href="{% url 'status:status_page' %}" class="close-btn">✕</a>
+
+</body>
+</html>

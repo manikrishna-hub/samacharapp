@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container" style="padding:20px;">
+    <h2>Edit Post</h2>
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <textarea name="text" rows="3" style="width:100%;">{{ post.text }}</textarea><br><br>
+
+        <label>Change Image:</label><br>
+        {% if post.image %}
+            <img src="{{ post.image.url }}" width="200"><br>
+        {% endif %}
+        <input type="file" name="image" accept="image/*"><br><br>
+
+        <label>Change Video:</label><br>
+        {% if post.video %}
+            <video width="200" controls>
+                <source src="{{ post.video.url }}" type="video/mp4">
+            </video><br>
+        {% endif %}
+        <input type="file" name="video" accept="video/*"><br><br>
+
+        <button type="submit">Save Changes</button>
+    </form>
+    <br>
+    <a href="{% url 'home' %}">⬅ Back to Feed</a>
+</div>
+{% endblock %}

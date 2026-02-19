@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Post Details{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 700px; margin: auto;">
+
+    <h2>📸 Post by {{ post.user.username }}</h2>
+    <hr>
+
+    <div style="border: 1px solid #ccc; border-radius: 8px; padding: 15px; background: #fff;">
+        <p><strong>{{ post.caption }}</strong></p>
+
+        {% if post.image %}
+            <img src="{{ post.image.url }}" alt="Post image" width="100%" style="border-radius: 8px;">
+        {% endif %}
+
+        <p style="margin-top: 10px; color: #555;">
+            <small>Posted on {{ post.created_at|date:"M d, Y H:i" }}</small>
+        </p>
+
+        <hr>
+
+        <div>
+            <form action="{% url 'like_post' post.id %}" method="POST" style="display:inline;">
+                {% csrf_token %}
+                {% if request.user in post.likes.all %}
+                    <button type="submit" class="btn btn-sm btn-danger">❤️ Unlike</button>
+                {% else %}
+                    <button type="submit" class="btn btn-sm btn-primary">🤍 Like</button>
+                {% endif %}
+            </form>
+
+            <span>{{ post.likes.count }} likes</span>
+        </div>
+
+        <hr>
+
+        <h4>Comments</h4>
+        {% for c in comments %}
+            <div style="margin-bottom: 10px; border-bottom: 1px solid #eee;">
+                <strong>{{ c.user.username }}</strong>: {{ c.text }}
+                <br>
+                <small style="color: gray;">{{ c.created_at|date:"M d, Y H:i" }}</small>
+            </div>
+        {% empty %}
+            <p>No comments yet.</p>
+        {% endfor %}
+
+        <form method="POST" action="{% url 'add_comment' post.id %}">
+            {% csrf_token %}
+            <input type="text" name="text" placeholder="Add a comment..." required
+                   style="width:80%; padding:5px;">
+            <button type="submit" class="btn btn-sm btn-success">Post</button>
+        </form>
+    </div>
+
+</div>
+{% endblock %}

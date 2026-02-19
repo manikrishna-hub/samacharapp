@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/reels.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<!-- REELS MOBILE HEADER -->
+<div class="reels-header d-md-none">
+    <div></div>
+
+    <div class="header-center">
+        <span class="app-name">Samachar</span>
+    </div>
+   
+   <div>
+   <a href="{% url 'upload_reel' %}" class="add-reel-btn">
+       <i class="fa-solid fa-plus"></i>
+   </a>
+ </div>
+
+</div>
+
+
+<div class="reels-container flex flex-col items-center">
+
+
+  {% for reel in reels %}
+  <div
+    id="reel-{{ reel.id }}"
+    data-reel-id="{{ reel.id }}"
+   class="reel-card reel relative w-full max-w-[420px] md:max-w-[500px]
+       mx-auto flex items-center justify-center bg-black lg:rounded-xl lg:shadow-2xl"
+  >
+    {% if reel.video %}
+      <video
+        src="{{ reel.video.url }}"
+        class="reel-video"
+        autoplay
+        loop
+        playsinline
+        preload="metadata">
+      </video>
+
+      <div class="sound-indicator"
+           role="button"
+           tabindex="0"
+           aria-label="Toggle sound"></div>
+    {% else %}
+      <img src="{{ reel.image.url }}" class="w-full h-full object-cover">
+    {% endif %}
+
+    <!-- DOUBLE TAP HEART -->
+    <div class="double-heart">❤️</div>
+
+    <!-- RIGHT ACTIONS -->
+    <div class="reel-actions absolute right-3 top-1/2 -translate-y-1/2
+                flex flex-col items-center gap-6 text-white">
+
+      <div class="action-item like-btn cursor-pointer" data-reel-id="{{ reel.id }}">
+        ❤️ <span class="count">{{ reel.likes_count }}</span>
+      </div>
+
+      <div class="action-item">
+        👁 <span class="count view-count">{{ reel.views_count }}</span>
+      </div>
+
+      <div class="action-item comment-btn cursor-pointer" data-reel-id="{{ reel.id }}">
+        💬 <span class="count">{{ reel.comments_count }}</span>
+      </div>
+
+      <div class="action-item share-btn cursor-pointer" data-reel-id="{{ reel.id }}">
+        🔗
+      </div>
+
+      {% if reel.user == request.user %}
+      <div class="action-item delete-btn cursor-pointer" data-reel-id="{{ reel.id }}">
+        🗑️
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- BOTTOM INFO -->
+    <div class="reel-info absolute left-3 bottom-5 text-white
+                px-3 py-2 bg-gradient-to-t from-black/70 to-transparent">
+      <strong>@{{ reel.user.username }}</strong>
+      <p>{{ reel.caption }}</p>
+    </div>
+
+    <!-- COMMENTS PANEL -->
+    <div class="reel-comments hidden">
+
+      <div class="comments-header">
+        Comments
+        <button type="button" class="close-comments">✕</button>
+      </div>
+
+      <div class="comments-list">
+        {% for comment in reel.comments.all %}
+        <div class="comment-row">
+          <img src="{{ comment.user.profile.image.url }}" class="comment-avatar">
+          <div class="comment-body">
+            <strong>@{{ comment.user.username }}</strong>
+            <p>{{ comment.text }}</p>
+            <div class="comment-meta">Reply</div>
+          </div>
+          <div class="comment-like">❤️</div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <div class="emoji-bar">
+        ❤️ 🙌 🔥 👏 😢 😍 😮 😂
+      </div>
+
+      <div class="comment-input-row">
+        <input type="text" class="comment-input" placeholder="Join the conversation…">
+        <button type="button" class="send-comment" data-reel-id="{{ reel.id }}">
+          Send
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+  {% endfor %}
+
+</div>
+
+<input type="hidden" id="csrf-token" value="{{ csrf_token }}">
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/reels_autoplay.js' %}"></script>
+<script src="{% static 'js/reels_sound.js' %}"></script>
+<script src="{% static 'js/reels_double_like.js' %}"></script>
+<script src="{% static 'js/reels_like.js' %}"></script>
+<script src="{% static 'js/reels_comment.js' %}"></script>
+<script src="{% static 'js/reels_share.js' %}"></script>
+<script src="{% static 'js/reels_view.js' %}"></script>
+<script src="{% static 'js/reels_deep.js' %}"></script>
+<script src="{% static 'js/reels_perf.js' %}"></script>
+<script src="{% static 'js/reels_swipe.js' %}"></script>
+<script src="{% static 'js/reels_delete.js' %}"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+      document.body.classList.add("reels-mode");
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,193 @@
+{% load static %}
+
+<div class="post-card">
+
+  <div class="post-header">
+    <div class="post-user-info">
+        {% if post.user.profile.profile_pic %}
+            <img src="{{ post.user.profile.profile_pic.url }}" class="avatar">
+        {% else %}
+            <img src="{% static 'images/default-avatar.png' %}" class="avatar">
+        {% endif %}
+
+        <div>
+            <strong>{{ post.user.username }}</strong><br>
+            <small class="post-time">
+                {{ post.created_at|timesince }} ago
+            </small>
+        </div>
+    </div>
+
+    {% if post.user == request.user %}
+    <div class="post-menu-container">
+        <button class="post-menu-btn"
+                onclick="toggleMenu('{{ post.id }}')">
+            <i class="fa-solid fa-ellipsis"></i>
+        </button>
+
+        <div id="menu-{{ post.id }}"
+             class="post-dropdown hidden">
+
+            <a href="{% url 'homepage:edit_post' post.id %}"
+               class="dropdown-link">
+                ✏️ Edit
+            </a>
+
+            <form method="POST"
+                  action="{% url 'homepage:delete_post' post.id %}">
+                {% csrf_token %}
+                <button type="submit"
+                        class="dropdown-delete">
+                    🗑 Delete
+                </button>
+            </form>
+
+        </div>
+    </div>
+    {% endif %}
+  </div>
+
+{% if post.media.count == 0 and post.text and post.text|length < 100 %}
+
+<div class="post-card text-post 
+     {{ post.bg_color|default:'' }} 
+     {{ post.font_style|default:'normal' }}">
+
+    {{ post.text }}
+
+</div>
+
+{% else %}
+<div class="post-card">
+    <div class="post-content normal-text-post">
+        {{ post.text }}
+    </div>
+</div>
+{% endif %}
+
+
+<!--================= media=========-->
+
+{% if post.media.count > 0 %}
+{% with total=post.media.count %}
+<div class="relative rounded-xl overflow-hidden bg-black media-group"
+     data-post-id="{{ post.id }}"
+     data-media='[
+        {% for m in post.media.all %}
+        {
+            "src": "{{ m.file.url }}",
+            "type": "{% if m.is_video %}video{% else %}image{% endif %}"
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+     ]'>
+
+    {% if total == 1 %}
+        {% for m in post.media.all %}
+        <div class="relative">
+            {% if m.is_video %}
+                <video class="media-item w-full max-h-[520px] object-cover cursor-pointer"
+                       data-post-id="{{ post.id }}"
+                       data-index="{{ forloop.counter0 }}"
+                       muted playsinline>
+                    <source src="{{ m.file.url }}">
+                </video>
+            {% else %}
+                <img src="{{ m.file.url }}"
+                     class="media-item w-full max-h-[520px] object-cover cursor-pointer"
+                     data-post-id="{{ post.id }}"
+                     data-index="{{ forloop.counter0 }}">
+            {% endif %}
+        </div>
+        {% endfor %}
+
+    {% elif total == 2 %}
+        <div class="grid grid-cols-2 gap-1">
+            {% for m in post.media.all %}
+            <div class="relative">
+                {% if m.is_video %}
+                    <video class="media-item w-full h-[300px] object-cover cursor-pointer"
+                           data-post-id="{{ post.id }}"
+                           data-index="{{ forloop.counter0 }}"
+                           muted playsinline>
+                        <source src="{{ m.file.url }}">
+                    </video>
+                {% else %}
+                    <img src="{{ m.file.url }}"
+                         class="media-item w-full h-[300px] object-cover cursor-pointer"
+                         data-post-id="{{ post.id }}"
+                         data-index="{{ forloop.counter0 }}">
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+    {% else %}
+        <div class="grid grid-cols-2 gap-1">
+            {% for m in post.media.all|slice:":5" %}
+            <div class="relative {% if forloop.first %}row-span-2{% endif %}">
+                {% if m.is_video %}
+                    <video class="media-item w-full h-full object-cover cursor-pointer"
+                           data-post-id="{{ post.id }}"
+                           data-index="{{ forloop.counter0 }}"
+                           muted playsinline>
+                        <source src="{{ m.file.url }}">
+                    </video>
+                {% else %}
+                    <img src="{{ m.file.url }}"
+                         class="media-item w-full h-full object-cover cursor-pointer"
+                         data-post-id="{{ post.id }}"
+                         data-index="{{ forloop.counter0 }}">
+                {% endif %}
+
+                {% if forloop.counter == 5 and total > 5 %}
+                <div class="absolute inset-0 bg-black/60 
+                            flex items-center justify-center
+                            text-white text-2xl font-bold">
+                    +{{ total|add:"-5" }}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+</div>
+{% endwith %}
+{% endif %}
+
+ 
+ <div class="post-actions">
+      <button class="action-btn like-btn {% if post.id in liked_posts %}liked{% endif %}"
+              data-like-url="{% url 'homepage:toggle_like' post.id %}">
+          ❤️ <span class="like-count">{{ post.likes_count }}</span>
+      </button>
+
+      <button class="action-btn"
+              onclick="toggleComments('{{ post.id }}')">
+          💬 Comment
+      </button>
+
+      <button class="action-btn share-btn"
+              data-url="{% url 'homepage:post_detail' post.id %}">
+          🔗 Share
+      </button>
+  </div>
+
+  <div id="comments-{{ post.id }}" class="hidden" style="padding:10px;">
+      {% for c in post.comments.all %}
+          <p><strong>{{ c.user.username }}</strong> {{ c.text }}</p>
+      {% endfor %}
+
+      <form class="comment-form"
+            data-post-id="{{ post.id }}"
+            data-comment-url="{% url 'homepage:add_comment' post.id %}">
+          {% csrf_token %}
+          <input type="text"
+                 name="text"
+                 class="comment-input"
+                 placeholder="Write a comment…"
+                 required>
+      </form>
+  </div>
+
+</div>

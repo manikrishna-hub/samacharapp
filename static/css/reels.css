@@ -1,0 +1,212 @@
+/* ================= MOBILE REELS HEADER ================= */
+
+.reels-header {
+   position: fixed;
+  top: 0;
+  width: 100%;
+  height: 60px;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 16px;
+  z-index: 2000;
+  color: #fff;
+}
+
+.header-center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.app-name {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.add-reel-btn {
+  color: #fff;
+  font-size: 22px;
+}
+
+/* ================= GLOBAL ================= */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: #000;
+  overflow: hidden; /* Important */
+}
+
+/* ================= REELS CONTAINER ================= */
+
+.reels-container {
+  height: calc(100dvh - 60px - 60px); /* use dvh instead of vh */
+  margin-top: 60px;
+  margin-bottom: 60px;
+
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+  background: #000;
+}
+
+/* ================= REEL CARD ================= */
+.reel-card {
+  height: calc(100dvh - 60px - 60px); /* match container exactly */
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #000;
+  position: relative;
+}
+
+/* ================= VIDEO / IMAGE ================= */
+.reel-video,
+.reel-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Prevent video blocking taps */
+.reel-video {
+  pointer-events: none;
+}
+
+/* ================= RIGHT ACTIONS ================= */
+.reel-actions {
+  position: absolute;
+  right: 12px;
+  bottom: 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  align-items: center;
+  color: #fff;
+  z-index: 10;
+}
+
+.action-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.action-item .count {
+  margin-top: 4px;
+  font-size: 13px;
+}
+
+/* ================= BOTTOM INFO ================= */
+.reel-info {
+  position: absolute;
+  left: 12px;
+  bottom: 80px;
+  color: #fff;
+  max-width: 80%;
+}
+
+/* ================= DOUBLE TAP HEART ================= */
+.double-heart {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  font-size: 80px;
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.double-heart.show {
+  transform: translate(-50%, -50%) scale(1.2);
+  opacity: 1;
+}
+
+
+/* ================= SOUND INDICATOR ================= */
+.sound-indicator {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  font-size: 20px;
+  opacity: 0.7;
+  cursor: pointer;
+}
+
+.sound-indicator::before {
+  content: "🔇";
+}
+
+.reel-video.sound-on + .sound-indicator::before {
+  content: "🔊";
+}
+
+/* ================= COMMENTS PANEL ================= */
+.reel-comments {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+
+  height: 55%;
+  background: #fff;
+  color: #000;
+
+  border-radius: 16px 16px 0 0;
+  z-index: 20;
+
+  display: flex;
+  flex-direction: column;
+
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+}
+
+.reel-comments:not(.hidden) {
+  transform: translateY(0);
+}
+
+.reel-comments.hidden {
+  display: none;
+}
+
+/* ================= MOBILE RESPONSIVE ================= */
+@media (max-width: 768px) {
+  .reel-card {
+    border-radius: 0;
+  }
+  .reels-container {
+    margin-top: 56px;
+  }
+}
+
+/* ================= DESKTOP ================= */
+@media (min-width: 1024px) {
+  .reel-card {
+    height: 90vh;
+    margin-top: 5vh;
+    border-radius: 18px;
+  }
+}
+@media (max-width: 768px) {
+
+  .reels-container {
+    margin-top: 56px;   /* space for header */
+  }
+
+}

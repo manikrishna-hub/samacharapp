@@ -33,6 +33,9 @@ ALLOWED_HOSTS = [
                 ".ngrok-free.dev",
                 #"django_channels_app"
                 ".trycloudflare.com",
+                "samacharapp.onrender.com",
+                "samacharapp.in",
+                "www.samacharapp.in",
                 ]
 
 

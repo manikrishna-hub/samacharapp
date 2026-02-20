@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-ruof!k^iprw38&30(sk&snd3$^8(7r%)fr(x*7!$ltv40wz$jj'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
                 "127.0.0.1", 
@@ -36,6 +36,7 @@ ALLOWED_HOSTS = [
                 "samacharapp.onrender.com",
                 "samacharapp.in",
                 "www.samacharapp.in",
+                'samacharapp-qj9a.onrender.com',
                 ]
 
 

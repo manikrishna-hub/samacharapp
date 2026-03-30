@@ -1,0 +1,43 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Verify OTP</title>
+
+    <!-- ✅ LINK CSS -->
+    <link rel="stylesheet" href="{% static 'css/otp.css' %}">
+</head>
+<body>
+
+<h2>Enter OTP</h2>
+
+<form method="POST">
+    {% csrf_token %}
+
+    <div class="otp-container">
+        <input type="text" maxlength="1" class="otp-box" required>
+        <input type="text" maxlength="1" class="otp-box" required>
+        <input type="text" maxlength="1" class="otp-box" required>
+        <input type="text" maxlength="1" class="otp-box" required>
+        <input type="text" maxlength="1" class="otp-box" required>
+        <input type="text" maxlength="1" class="otp-box" required>
+    </div>
+
+    <input type="hidden" name="otp" id="otp">
+
+    <br>
+    <button type="submit">Verify</button>
+</form>
+
+<p class="timer" id="timer">60</p>
+
+<p>
+    <a href="{% url 'accounts:resend_otp' %}" id="resend">Resend OTP</a>
+</p>
+
+<!-- ✅ JS -->
+<script src="{% static 'js/otp.js' %}"></script>
+
+</body>
+</html>

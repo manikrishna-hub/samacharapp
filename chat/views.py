@@ -143,17 +143,21 @@ def direct_chat(request):
     
     # chat/views.py
 
-
 def call_room(request, call_id):
     call_type = request.GET.get("type", "audio")
     role = request.GET.get("role", "caller")
-    conv = request.GET.get("conv")
+    conv_id = request.GET.get("conv")
+
+    conversation = Conversation.objects.filter(id=conv_id).first()
+
+    other_user = None
+    if conversation:
+        other_user = conversation.participants.exclude(id=request.user.id).first()
 
     return render(request, "chat/call_room.html", {
         "call_id": call_id,
         "call_type": call_type,
         "role": role,
-        "conv_id": conv,
-        "user": request.user,
+        "conv_id": conv_id,
+        "other_user": other_user,
     })
-

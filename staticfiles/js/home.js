@@ -1,154 +1,176 @@
-document.addEventListener('DOMContentLoaded', () => {
+/* =====================================================
+   CSRF TOKEN
+===================================================== */
+function getCSRFToken() {
+    return document.cookie
+        .split("; ")
+        .find(row => row.startsWith("csrftoken="))
+        ?.split("=")[1];
+}
 
-  /* ================= CSRF ================= */
-  function getCSRFToken() {
-    const el = document.querySelector('[name=csrfmiddlewaretoken]');
-    return el ? el.value : '';
-  }
+/* =====================================================
+   GLOBAL MEDIA VARIABLES
+===================================================== */
+let mediaList = [];
+let mediaTypes = [];
+let currentIndex = 0;
 
-  /* ================= TOGGLE COMMENTS ================= */
-  window.toggleComments = function (postId) {
-    const form = document.getElementById(`comment-form-${postId}`);
-    const list = document.getElementById(`comments-${postId}`);
-    if (form) form.classList.toggle('hidden');
-    if (list) list.classList.toggle('hidden');
-  };
+/* =====================================================
+   DOM READY
+===================================================== */
+document.addEventListener("DOMContentLoaded", function () {
 
-  /* ================= MEDIA / SWIPE ================= */
-  let mediaList = [];
-  let mediaTypes = [];
-  let currentIndex = 0;
-  let startX = 0;
+    const modal = document.getElementById("mediaModal");
+    const modalContent = document.getElementById("modalContent");
 
-  document.querySelectorAll('.media-item').forEach(item => {
-    item.addEventListener('click', () => {
-      const postId = item.dataset.postId;
-      const index = Number(item.dataset.index);
+    /* ================= COMMENTS ================= */
+    window.toggleComments = function (postId) {
+        const box = document.getElementById(`comments-${postId}`);
+        if (box) box.classList.toggle("hidden");
+    };
 
-      const group = document.querySelector(
-        `.media-group[data-post-id="${postId}"]`
-      );
-      if (!group) return;
+    /* ================= POST MENU ================= */
+    window.toggleMenu = function (postId) {
+        const currentMenu = document.getElementById(`menu-${postId}`);
 
-      const data = JSON.parse(group.dataset.media);
-      mediaList = data.map(m => m.src);
-      mediaTypes = data.map(m => m.type);
-      currentIndex = index;
+        document.querySelectorAll(".post-dropdown").forEach(menu => {
+            if (menu !== currentMenu) menu.classList.add("hidden");
+        });
 
-      openModal();
+        currentMenu?.classList.toggle("hidden");
+    };
+
+    document.addEventListener("click", function (e) {
+        if (!e.target.closest(".post-menu-container")) {
+            document.querySelectorAll(".post-dropdown").forEach(menu => {
+                menu.classList.add("hidden");
+            });
+        }
     });
-  });
 
-  function openModal() {
-    renderMedia();
-    document.getElementById('mediaModal').classList.add('active');
-  }
+    /* ================= LIKE ================= */
+    document.addEventListener("click", function (e) {
+        const likeBtn = e.target.closest(".like-btn");
+        if (!likeBtn) return;
 
-  function renderMedia() {
-    const content = document.getElementById('modalContent');
-    content.innerHTML = '';
+        fetch(likeBtn.dataset.likeUrl, {
+            method: "POST",
+            headers: { "X-CSRFToken": getCSRFToken() }
+        })
+        .then(res => res.json())
+        .then(data => {
+            likeBtn.classList.toggle("liked", data.liked);
+            const countSpan = likeBtn.querySelector(".like-count");
+            if (countSpan) countSpan.textContent = data.count;
+        });
+    });
 
-    const src = mediaList[currentIndex];
-    const type = mediaTypes[currentIndex];
+    /* ================= SHARE ================= */
+    document.addEventListener("click", function (e) {
+        const shareBtn = e.target.closest(".share-btn");
+        if (!shareBtn) return;
 
-    if (type === 'video') {
-      const v = document.createElement('video');
-      v.src = src;
-      v.controls = true;
-      v.autoplay = true;
-      v.muted = true;
-      v.playsInline = true;
-      content.appendChild(v);
-    } else {
-      const img = document.createElement('img');
-      img.src = src;
-      content.appendChild(img);
+        const url = window.location.origin + shareBtn.dataset.url;
+
+        if (navigator.share) {
+            navigator.share({ url });
+        } else {
+            navigator.clipboard.writeText(url)
+                .then(() => alert("Link copied!"));
+        }
+    });
+
+    /* ================= OPEN MODAL ================= */
+    document.addEventListener("click", function (e) {
+
+        const item = e.target.closest(".media-item");
+        if (!item) return;
+
+        const group = item.closest(".media-group");
+        if (!group) return;
+
+        const data = JSON.parse(group.dataset.media);
+
+        mediaList = data.map(m => m.src);
+        mediaTypes = data.map(m => m.type);
+
+        currentIndex = Number(item.dataset.index);
+
+        openModal();
+    });
+
+    /* ================= RENDER MEDIA ================= */
+    function renderMedia() {
+
+        modalContent.innerHTML = "";
+
+        const src = mediaList[currentIndex];
+        const type = mediaTypes[currentIndex];
+
+        if (!src) return;
+
+        if (type === "video") {
+            const video = document.createElement("video");
+            video.src = src;
+            video.controls = true;
+            video.autoplay = true;
+            video.playsInline = true;
+            video.style.maxHeight = "90vh";
+            modalContent.appendChild(video);
+        } else {
+            const img = document.createElement("img");
+            img.src = src;
+            img.style.maxHeight = "90vh";
+            modalContent.appendChild(img);
+        }
     }
-  }
 
-  window.nextMedia = () => {
-    if (mediaList.length < 2) return;
-    currentIndex = (currentIndex + 1) % mediaList.length;
-    renderMedia();
-  };
+    /* ================= OPEN ================= */
+    window.openModal = function () {
+        renderMedia();
+        modal.classList.add("active");
+        document.body.style.overflow = "hidden";
+    };
 
-  window.prevMedia = () => {
-    if (mediaList.length < 2) return;
-    currentIndex = (currentIndex - 1 + mediaList.length) % mediaList.length;
-    renderMedia();
-  };
+    /* ================= NEXT ================= */
+    window.nextMedia = function () {
+        if (mediaList.length < 2) return;
+        currentIndex = (currentIndex + 1) % mediaList.length;
+        renderMedia();
+    };
 
-  window.closeMediaModal = () => {
-    document.getElementById('mediaModal').classList.remove('active');
-    document.getElementById('modalContent').innerHTML = '';
-  };
+    /* ================= PREVIOUS ================= */
+    window.prevMedia = function () {
+        if (mediaList.length < 2) return;
+        currentIndex = (currentIndex - 1 + mediaList.length) % mediaList.length;
+        renderMedia();
+    };
 
-  const modal = document.getElementById('mediaModal');
-  const content = document.getElementById('modalContent');
+    /* ================= CLOSE ================= */
+    window.closeMediaModal = function () {
+        const video = modalContent.querySelector("video");
+        if (video) {
+            video.pause();
+            video.src = "";
+        }
 
-  modal.addEventListener('click', e => {
-    if (e.target.id === 'mediaModal') closeMediaModal();
-  });
+        modal.classList.remove("active");
+        modalContent.innerHTML = "";
+        document.body.style.overflow = "auto";
+    };
 
-  content.addEventListener('touchstart', e => {
-    startX = e.touches[0].clientX;
-  });
-
-  content.addEventListener('touchend', e => {
-    const diff = e.changedTouches[0].clientX - startX;
-    if (Math.abs(diff) < 50) return;
-    diff < 0 ? nextMedia() : prevMedia();
-  });
-
-  /* ================= LIKE ================= */
-  document.querySelectorAll('.like-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const postId = btn.dataset.postId;
-
-      fetch(`/post/${postId}/like/`, {
-        method: 'POST',
-        headers: { 'X-CSRFToken': getCSRFToken() }
-      })
-      .then(r => r.json())
-      .then(d => {
-        btn.querySelector('.like-count').textContent = d.count;
-        btn.classList.toggle('liked', d.liked);
-      });
+    /* ================= CLICK OUTSIDE CLOSE ================= */
+    modal.addEventListener("click", function (e) {
+        if (e.target === modal) {
+            closeMediaModal();
+        }
     });
-  });
 
-  /* ================= COMMENTS ================= */
-  document.querySelectorAll('.comment-form').forEach(form => {
-    form.addEventListener('submit', e => {
-      e.preventDefault();
-
-      const postId = form.dataset.postId;
-      const input = form.querySelector('input');
-
-      fetch(`/post/${postId}/comment/`, {
-        method: 'POST',
-        headers: { 'X-CSRFToken': getCSRFToken() },
-        body: new URLSearchParams({ text: input.value })
-      })
-      .then(r => r.json())
-      .then(d => {
-        document.getElementById(`comments-${postId}`)
-          .insertAdjacentHTML(
-            'beforeend',
-            `<p class="text-xs"><b>${d.user}</b> ${d.text}</p>`
-          );
-        input.value = '';
-      });
+    /* ================= ESC CLOSE ================= */
+    document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") {
+            closeMediaModal();
+        }
     });
-  });
-
-  /* ================= SHARE ================= */
-  document.querySelectorAll('.share-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const url = window.location.origin + btn.dataset.url;
-      navigator.share ? navigator.share({ url }) :
-        navigator.clipboard.writeText(url).then(() => alert('Link copied!'));
-    });
-  });
 
 });

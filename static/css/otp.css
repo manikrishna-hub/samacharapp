@@ -1,0 +1,59 @@
+/* static/css/otp.css */
+
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin-top: 100px;
+    background: #f5f7fa;
+}
+
+h2 {
+    margin-bottom: 20px;
+}
+
+.otp-container {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.otp-box {
+    width: 45px;
+    height: 50px;
+    font-size: 22px;
+    text-align: center;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    transition: 0.2s;
+}
+
+.otp-box:focus {
+    border-color: #0c6585;
+    box-shadow: 0 0 5px rgba(12, 101, 133, 0.4);
+    outline: none;
+}
+
+button {
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #0c6585, #0a546d);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+button:hover {
+    transform: scale(1.05);
+}
+
+.timer {
+    margin-top: 10px;
+    color: red;
+    font-weight: bold;
+}
+
+#resend {
+    color: gray;
+    text-decoration: none;
+}

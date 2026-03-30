@@ -5,11 +5,13 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q, Count
 from django.views.decorators.http import require_POST
-from .models import Post, PostLike, Comment, PostMedia, Notification, Follow
-from profiles.models import Profile
+from .models import Post, PostLike, Comment, PostMedia, Notification
+from accounts.models import Profile
 from chat.models import Conversation
 from django.http import JsonResponse
 from django.core.paginator import Paginator
+from homepage.models import Post
+from accounts.models import Follow  
 
 
 # ================== AUTH ==================
@@ -43,7 +45,7 @@ def user_login(request):
         password = request.POST.get('password')
 
         user = authenticate(request, username=username, password=password)
-        if user:
+        if user:   
             login(request, user)
             return redirect('homepage:home')
 
@@ -61,28 +63,36 @@ def user_logout(request):
 
 
 # ================== HOME / FEED ==================
-
+# ================== HOME / FEED ==================
 @login_required(login_url='/login/')
 def home(request):
 
+    # Get accepted friends only
+    accepted_following_ids = Follow.objects.filter(
+        follower=request.user,
+        is_accepted=True
+    ).values_list('following_id', flat=True)
+
     posts_queryset = (
         Post.objects
-        .filter(Q(visibility='public') | Q(user=request.user))
+        .filter(
+            Q(visibility='public') |
+            Q(user__in=accepted_following_ids, visibility='private') |
+            Q(user=request.user)
+        )
         .select_related('user', 'user__profile')
         .prefetch_related('media')
         .annotate(
             likes_count=Count('likes', distinct=True),
             comments_count=Count('comments', distinct=True)
         )
-        .order_by('-created_at')   # 🔥 ADD THIS
-        
+        .order_by('-created_at')
     )
 
     paginator = Paginator(posts_queryset, 10)
     page_number = request.GET.get('page')
     posts = paginator.get_page(page_number)
 
-    # 🔥 Only check likes for current page posts
     liked_posts = set(
         PostLike.objects.filter(
             user=request.user,
@@ -90,17 +100,16 @@ def home(request):
         ).values_list('post_id', flat=True)
     )
 
-    following_user_ids = list(
-        Follow.objects.filter(
-            follower=request.user,
-            status='accepted'
-        ).values_list('following_id', flat=True)
-    )
+    # 🔔 ADD THIS INSIDE FUNCTION
+    pending_requests_count = Follow.objects.filter(
+        following=request.user,
+        is_accepted=False
+    ).count()
 
     return render(request, 'homepage/home.html', {
         'posts': posts,
         'liked_posts': liked_posts,
-        'following_user_ids': following_user_ids,
+        'pending_requests_count': pending_requests_count,
     })
 
 # ================== CREATE POST ==================
@@ -219,7 +228,7 @@ def delete_post(request, post_id):
     return render(request, 'homepage/delete_post.html', {'post': post})
 
 
-# ================== FOLLOW SYSTEM ==================
+"""# ================== FOLLOW SYSTEM ==================
 
 @login_required
 def send_follow_request(request, user_id):
@@ -332,7 +341,7 @@ def followers_list(request, user_id):
         'following': following
     })
 
-
+"""
 # ================== NOTIFICATIONS ==================
 
 @login_required
@@ -368,13 +377,13 @@ def search_users(request):
         if query else []
     )
 
-    following_ids = Follow.objects.filter(
+    """following_ids = Follow.objects.filter(
         follower=request.user,
         status='accepted'
-    ).values_list('following_id', flat=True)
+    ).values_list('following_id', flat=True)"""
 
     return render(request, 'log/search.html', {
         'users': users,
         'query': query,
-        'following_ids': following_ids
+        
     })

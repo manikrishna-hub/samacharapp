@@ -3,8 +3,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Audio Call</title>
-
+  <title>Call</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <link rel="stylesheet" href="{% static 'css/call.css' %}">
@@ -16,47 +15,57 @@
 <body>
 
   <!-- HEADER -->
-  <h3 class="call-title">{{ request.user.username }}</h3>
+   <h3 class="call-title">
+{% if role == "caller" %}
+Calling {{ other_user.username }}...
+{% else %}
+{{ other_user.username }} is calling
+{% endif %}
+</h3>
+
+<img class="call-avatar"
+     src="{% if other_user.profile.profile_pic %}
+            {{ other_user.profile.profile_pic.url }}
+          {% else %}
+            {% static 'images/default-avatar.png' %}
+          {% endif %}"
+     alt="avatar">
+
+<div id="callTimer" class="call-timer">00:00</div>
 
 <!-- VIDEO AREA -->
 <div class="video-container">
-  <!-- Local self video -->
   <video id="localVideo" autoplay muted playsinline></video>
-
-  <!-- Remote user video -->
-  <video id="remoteVideo" autoplay playsinline></video>
+  <div id="remoteContainer" class="remote-container"></div>
 </div>
-  
- 
-  
-   <!-- AUDIO OUTPUT -->
-  <audio id="remoteAudio" autoplay playsinline></audio>
-	
-  <!-- RECEIVER CONTROLS -->
-  <div id="incomingControls" class="call-controls" hidden>
-    <button id="acceptBtn" class="accept-btn">Accept</button>
-    <button id="rejectBtn" class="reject-btn">Reject</button>
-  </div>
 
-  <!-- ACTIVE CALL CONTROLS -->
-  <div id="activeControls" class="call-controls" hidden>
-    <button id="hangupBtn" class="hangup-btn">End Call</button>
-  </div>
+<!-- AUDIO OUTPUT -->
+<audio id="remoteAudio" autoplay playsinline></audio>
 
-  <!-- SOUNDS -->
-  <audio id="ringtone" loop src="{% static 'sounds/incoming_call.mp3' %}"></audio>
-  <audio id="ringbackTone" loop src="{% static 'sounds/outgoing_call.mp3' %}"></audio>
+<div id="callingStatus" class="calling-status">
+  Calling...
+</div>
 
-  <!-- DATA FOR call.js -->
+<!-- ACTIVE CALL CONTROLS -->
+<div class="call-controls">
+  <button id="hangupBtn" class="hangup-btn">End Call</button>
+</div>
+
+
+  <!-- DATA -->
   <div id="chat-data"
        data-call-id="{{ call_id }}"
        data-role="{{ role }}"
        data-conv-id="{{ conv_id }}">
   </div>
 
- <!--------timer---------->
- <div id="callTimer" class="call-timer">00:00</div>
+<!-- SCRIPTS -->
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 
-  <script src="{% static 'js/call.js' %}"></script>
+<script src="{% static 'js/mediasoup-client.min.js' %}"></script>
+<script src="/static/js/base.js"></script>
+<script src="{% static 'js/call.js' %}"></script>
+
+
 </body>
 </html>

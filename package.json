@@ -1,0 +1,21 @@
+{
+  "dependencies": {
+    "browserify": "^17.0.1",
+    "esbuild": "^0.27.3",
+    "express": "^5.2.1",
+    "mediasoup": "^3.19.3",
+    "mediasoup-client": "^3.18.7",
+    "socket.io": "^4.8.3",
+    "socket.io-client": "^4.8.3"
+  },
+  "name": "myapp",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}

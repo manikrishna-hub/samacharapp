@@ -61,7 +61,7 @@ class Conversation(models.Model):
         self.admins.remove(user)
         self.participants.remove(user)
         self.save()
-
+    
 
 class Message(models.Model):
     conversation = models.ForeignKey(Conversation, related_name='messages', on_delete=models.CASCADE)

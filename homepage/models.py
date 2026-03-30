@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from accounts.models import Profile
 
 # ================== POST ==================
 class Post(models.Model):
@@ -110,7 +111,7 @@ class Comment(models.Model):
         ordering = ['-created_at']
 
 
-# ================== FOLLOW ==================
+"""# ================== FOLLOW ==================
 class Follow(models.Model):
     follower = models.ForeignKey(
         User,
@@ -146,7 +147,7 @@ class Follow(models.Model):
             models.Index(fields=['follower']),
             models.Index(fields=['following']),
         ]
-
+"""
 
 # ================== NOTIFICATION ==================
 class Notification(models.Model):

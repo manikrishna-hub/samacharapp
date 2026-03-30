@@ -1,0 +1,21 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Django
+db.sqlite3
+staticfiles/
+media/
+
+# Node
+node_modules/
+
+# Env
+.env
+
+# Misc
+*.log
+*.txt

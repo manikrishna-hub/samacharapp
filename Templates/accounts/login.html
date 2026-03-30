@@ -1,0 +1,52 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SAMACHAR — Login</title>
+  <link rel="stylesheet" href="{% static 'css/login.css' %}">
+</head>
+
+<body>
+  <div class="topband">SAMACHAR</div>
+
+  <main class="container">
+    <section class="hero">
+      <div class="brand-visual">
+        <img src="/mnt/data/939f6e9e-36b7-4e1c-b662-611143647d75.png" alt="SAMACHAR visual">
+      </div>
+
+      <h2>Our Indian Social Media Samachar App</h2>
+      <p>(News of Truth)</p>
+
+      <div class="small">Replace image with your logo if needed.</div>
+    </section>
+
+    <aside>
+      <form class="card" method="post" action="">
+        {% csrf_token %}
+
+        <h3>Login</h3>
+
+        <div class="form-group">
+          <label for="username">Username or Email</label>
+          <input id="username" type="text" name="username" placeholder="Your username">
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input id="password" type="password" name="password" placeholder="••••••••">
+        </div>
+
+        <button class="btn" type="submit">Login</button>
+
+        <div class="muted-line">
+          Don't have an account? <a class="link" href="{% url 'homepage:register' %}">Register</a>
+        </div>
+      </form>
+    </aside>
+  </main>
+
+</body>
+</html>

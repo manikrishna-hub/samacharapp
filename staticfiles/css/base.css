@@ -9,7 +9,7 @@ html, body {
   height: 100%;
   margin: 0;
   font-family: "Segoe UI", sans-serif;
-  background: #ffffff; /* ✅ REMOVE YELLOW */
+  background: #ffffff;
   overflow-x: hidden;
 }
 
@@ -25,7 +25,7 @@ html, body {
   top: 0;
   left: 0;
   padding-top: 20px;
-  display: flex;
+  display: flex  !important;
   flex-direction: column;
   z-index: 999;
 }
@@ -64,10 +64,11 @@ html, body {
   margin-left: 240px;
   width: calc(100% - 240px);
   min-height: 100vh;
-  background: #ffffff; /* ✅ EDGE TO EDGE WHITE */
-  padding: 0;          /* ✅ REMOVE GAP */
+  background: #ffffff;
+  padding: 0;
   overflow-x: hidden;
 }
+
 /* ===========================
    MOBILE TOP BAR
 =========================== */
@@ -91,18 +92,18 @@ html, body {
 }
 
 .mobile-icons i {
-  font-size: 26px;      /* 🔥 Bigger top icons */
+  font-size: 26px;
   color: #222;
 }
 
 /* ===========================
-   MOBILE BOTTOM NAV (FIXED)
+   MOBILE BOTTOM NAV
 =========================== */
 .mobile-bottom-nav {
   position: fixed;
   bottom: 0;
   width: 100%;
-  height: 60px;         /* 🔥 Taller like WhatsApp */
+  height: 60px;
   background: #ffffff;
   border-top: 1px solid #e5e5e5;
   display: none;
@@ -111,15 +112,13 @@ html, body {
   z-index: 1000;
 }
 
-/* Bigger icons */
 .mobile-bottom-nav i {
-  font-size: 25px;      /* 🔥 MAIN FIX */
+  font-size: 25px;
   color: #333;
 }
 
-/* Bigger tap area */
 .mobile-bottom-nav a {
-  position: relative;              /* 🔥 REQUIRED */
+  position: relative;
   flex: 1;
   height: 100%;
   display: flex;
@@ -128,9 +127,20 @@ html, body {
   text-decoration: none;
 }
 
-/* Active tab (optional WhatsApp feel) */
 .mobile-bottom-nav a.active i {
-  color: #25D366;
+  color: #c357cf;
+}
+
+.mobile-bottom-nav a.active::after {
+  content: "";
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 26px;
+  height: 4px;
+  background: #a855f7;
+  border-radius: 10px;
 }
 
 /* ===========================
@@ -150,7 +160,6 @@ html, body {
     display: flex;
   }
 
-  /* FULLSCREEN CONTENT (NO GAP) */
   .page-container {
     margin-left: 0;
     margin-top: 56px;
@@ -166,22 +175,27 @@ html, body {
   }
 }
 
-/* ===========================
-   ACTIVE MOBILE NAV ICON
-=========================== */
-.mobile-bottom-nav a.active i {
-  color: #c357cf;           
+/* ===================================================
+   🔥 REELS FULLSCREEN MODE (ONLY FOR REELS PAGE)
+=================================================== */
+
+body.reels-mode {
+  background: #000;
 }
 
-/* Optional: small underline effect */
-.mobile-bottom-nav a.active::after {
-   content: "";
-  position: absolute;
-  bottom: 6px;
-  left: 50%;
-  transform: translateX(-50%);     /* 🔥 CENTER FIX */
-  width: 26px;
-  height: 4px;
-  background: #a855f7;
-  border-radius: 10px;
+/* Remove spacing & white background */
+body.reels-mode .page-container {
+  margin: 0 !important;
+  padding: 0 !important;
+  background: #000 !important;
+  min-height: 100vh !important;
+}
+
+/* Mobile fix */
+@media (max-width: 768px) {
+  body.reels-mode .page-container {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    min-height: 100vh !important;
+  }
 }

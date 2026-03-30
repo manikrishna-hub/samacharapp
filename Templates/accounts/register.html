@@ -1,0 +1,55 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{% static 'css/register.css' %}">
+</head>
+
+<body>
+
+<div class="container">
+
+    <h2>Create Account</h2>
+
+	<form method="POST">
+    {% csrf_token %}
+
+    <input type="text" name="contact" placeholder="Mobile number or email" required>
+
+    <div class="password-wrapper">
+        <input type="password" name="password" id="password" placeholder="Password" required>
+        <span id="togglePassword">👁</span>
+    </div>
+
+    <input type="date" name="date_of_birth" required>
+
+    <input type="text" name="full_name" placeholder="Full Name" required>
+
+    <input type="text" name="username" placeholder="Username" required autocomplete="off">
+
+    <button type="submit">Sign up</button>
+</form>
+
+
+    {% if messages %}
+      {% for message in messages %}
+        <p style="color:red;">{{ message }}</p>
+      {% endfor %}
+    {% endif %}
+
+    <div class="link">
+        Already have an account?
+        <a href="{% url 'accounts:login' %}">Login</a>
+    </div>
+
+</div>
+
+<!-- ✅ ADD JS HERE (important: before closing body) -->
+<script src="{% static 'js/register.js' %}"></script>
+
+</body>
+</html>

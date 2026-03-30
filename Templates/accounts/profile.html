@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="profile-container">
+
+    <div class="profile-card">
+
+        <div class="cover-photo"></div>
+
+        <div class="profile-info text-center">
+
+            <div class="profile-avatar">
+                <img src="{% static 'images/default-avatar.png' %}" width="120">
+            </div>
+
+            <h3>@{{ profile_user.username }}</h3>
+
+            <p>{{ profile_user.profile.bio|default:"No bio yet." }}</p>
+           
+            {% if request.user.is_authenticated and request.user != profile_user %}
+
+           {% if is_following %}
+                 <button class="btn btn-secondary">Following</button>
+
+            {% elif is_pending %}
+                   <button class="btn btn-warning">Requested</button>
+
+           {% else %}
+               <a href="{% url 'accounts:toggle_follow' profile_user.username %}"
+                        class="btn btn-primary">
+                        Follow
+                       </a>
+                   {% endif %}
+
+          {% endif %}
+            {% if request.user == profile_user %}
+                <a href="#" class="btn btn-primary">Edit Profile</a>
+            {% endif %}
+
+        </div>
+
+    </div>
+
+    <hr>
+
+    <h4>User Posts</h4>
+
+    {% for post in posts %}
+        <div class="post-card mb-3 p-3 border rounded">
+            {{ post.text }}
+        </div>
+    {% empty %}
+        <p>No posts yet.</p>
+    {% endfor %}
+
+</div>
+
+{% endblock %}

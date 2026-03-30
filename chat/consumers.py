@@ -3,8 +3,8 @@ import traceback
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from channels.db import database_sync_to_async
 from django.utils import timezone
-from .utils import smart_reply_engine
 from .models import CallRecord
+import json
 
 
 class ChatConsumer(AsyncJsonWebsocketConsumer):
@@ -22,45 +22,46 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
                 await self.close()
                 return
 
-            ok = await self.user_in_conversation(self.user.id, self.conversation_id)
-            if not ok:
-                await self.close()
-                return
+            # Set user online
+            await self.set_user_online(self.user)
 
-            await self.channel_layer.group_add(self.room_group_name, self.channel_name)
-            await self.channel_layer.group_add(f"user_{self.user.id}", self.channel_name)
             await self.accept()
 
-            await self.channel_layer.group_send(
+            await self.channel_layer.group_add(
                 self.room_group_name,
-                {
-                    "type": "presence.update",
-                    "user_id": self.user.id,
-                    "status": "online",
-                },
+                self.channel_name
             )
 
-        except Exception:
+        except Exception as e:
+            print("CONNECT ERROR:", e)
             traceback.print_exc()
             await self.close()
 
     # ================= DISCONNECT =================
     async def disconnect(self, close_code):
         try:
-            await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
-            await self.channel_layer.group_discard(f"user_{self.user.id}", self.channel_name)
+            if self.user and self.user.is_authenticated:
+                await self.set_user_offline(self.user)
 
-            await self.channel_layer.group_send(
+            await self.channel_layer.group_discard(
                 self.room_group_name,
-                {
-                    "type": "presence.update",
-                    "user_id": self.user.id,
-                    "status": "offline",
-                    "last_seen": timezone.now().isoformat(),
-                },
+                self.channel_name
             )
+
         except Exception:
             pass
+
+    # ================= PRESENCE HELPERS =================
+    @database_sync_to_async
+    def set_user_online(self, user):
+        user.profile.is_online = True
+        user.profile.save(update_fields=["is_online"])
+
+    @database_sync_to_async
+    def set_user_offline(self, user):
+        user.profile.is_online = False
+        user.profile.last_seen = timezone.now()
+        user.profile.save(update_fields=["is_online", "last_seen"])
 
     # ================= RECEIVE =================
     async def receive_json(self, content, **kwargs):
@@ -101,24 +102,23 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
                 },
             )
             return
-
-        # ================= CALL + WEBRTC SIGNALING (FIXED) =================
+            
+# -------- CALL + WEBRTC SIGNALING --------
         if msg_type in (
             "call.start",
             "call.accept",
             "call.rejected",
             "call.end",
-
-    # 🔊 WebRTC audio signaling (FIX)
-        "audio_call_offer",
-        "audio_call_answer",
-        "ice_candidate",
+            "audio_call_offer",
+            "audio_call_answer",
+            "ice_candidate",
         ):
+
             content["from"] = self.user.username
             content["from_id"] = self.user.id
             content["conversation_id"] = self.conversation_id
 
-            # Create record ONLY when call starts
+            # Create call record if starting call
             if msg_type == "call.start":
                 await self.create_call_record(
                     self.conversation_id,
@@ -126,6 +126,20 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
                     content.get("call_type", "audio"),
                 )
 
+                # Send popup to receiver
+                receiver_id = content.get("to_id")
+
+                if receiver_id:
+                    await self.channel_layer.group_send(
+                        f"user_{receiver_id}",
+                        {
+                            "type": "incoming_call",
+                            "caller": self.user.username,
+                            "conv_id": self.conversation_id,
+                        },
+                    )
+
+            # Forward signaling to chat room
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
@@ -133,6 +147,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
                     "event": content,
                 },
             )
+
             return
 
     # ================= EVENT HANDLERS =================
@@ -142,21 +157,10 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
     async def typing_status(self, event):
         await self.send_json(event)
 
-    async def presence_update(self, event):
-        await self.send_json({"type": "presence", **event})
-
-    async def forward_call(self, data):
-        await self.send_json(data["event"])
+    async def forward_call(self, event):
+        await self.send_json(event["event"])
 
     # ================= DB HELPERS =================
-    @database_sync_to_async
-    def user_in_conversation(self, user_id, conv_id):
-        from .models import Conversation
-        try:
-            return Conversation.objects.get(id=conv_id).participants.filter(id=user_id).exists()
-        except Exception:
-            return False
-
     @database_sync_to_async
     def create_message(self, conv_id, user_id, text):
         from .models import Conversation, Message
@@ -179,4 +183,44 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             initiator_id=user_id,
             call_type=call_type,
         ).id
- 
+    
+# ===========popup incomming menu======
+import json
+from channels.generic.websocket import AsyncWebsocketConsumer
+
+
+class CallConsumer(AsyncWebsocketConsumer):
+
+    async def connect(self):
+
+        self.user = self.scope["user"]
+
+        if not self.user.is_authenticated:
+            await self.close()
+            return
+
+        self.group_name = f"user_{self.user.id}"
+
+        await self.channel_layer.group_add(
+            self.group_name,
+            self.channel_name
+        )
+
+        await self.accept()
+
+
+    async def disconnect(self, close_code):
+
+        await self.channel_layer.group_discard(
+            self.group_name,
+            self.channel_name
+        )
+
+
+    async def incoming_call(self, event):
+
+        await self.send(text_data=json.dumps({
+            "type": "incoming_call",
+            "caller": event["caller"],
+            "conv_id": event["conv_id"]
+        }))

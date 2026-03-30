@@ -22,13 +22,8 @@ urlpatterns = [
     path('delete/<int:post_id>/', views.delete_post, name='delete_post'),
     path('toggle-like/<int:post_id>/', views.toggle_like, name='toggle_like'),
 
-    # Follow system
-    path('follow/<int:user_id>/', views.send_follow_request, name='send_follow_request'),
-    path('unfollow/<int:user_id>/', views.unfollow_user, name='unfollow_user'),
-    path('follow/accept/<int:follow_id>/', views.accept_follow_request, name='accept_follow_request'),
-    path('follow/reject/<int:follow_id>/', views.reject_follow_request, name='reject_follow_request'),
-    path('follow/requests/', views.view_follow_requests, name='view_follow_requests'),
-    path('follow/list/<int:user_id>/', views.followers_list, name='followers_list'),
+
+
 
     # Notifications
     path('notifications/', views.notifications_view, name='notifications'),

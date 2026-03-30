@@ -25,7 +25,7 @@ html, body {
   top: 0;
   left: 0;
   padding-top: 20px;
-  display: flex;
+  display: flex  !important;
   flex-direction: column;
   z-index: 999;
 }
@@ -198,4 +198,47 @@ body.reels-mode .page-container {
     margin-bottom: 0 !important;
     min-height: 100vh !important;
   }
+}
+
+
+/* ================= Incoming Call Popup ================= */
+
+.incoming-call{
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+}
+
+.call-box{
+    background:#0b1b2b;
+    color:white;
+    padding:20px;
+    border-radius:12px;
+    width:260px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.5);
+}
+
+.call-buttons{
+    margin-top:15px;
+    display:flex;
+    justify-content:space-between;
+}
+
+.accept{
+    background:#25D366;
+    border:none;
+    color:white;
+    padding:10px 16px;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+.reject{
+    background:#ff3b30;
+    border:none;
+    color:white;
+    padding:10px 16px;
+    border-radius:8px;
+    cursor:pointer;
 }

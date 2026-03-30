@@ -1,263 +1,336 @@
-console.log("📞 Audio Call Loaded");
-if (!window.opener) {
-  alert("Call window lost connection to chat. Please retry the call.");
-}
+console.log("📞 SFU Call Loaded");
 
-
-/* ================= DATA ================= */
-const dataEl = document.getElementById("chat-data").dataset;
-const callId = dataEl.callId;
-const role = dataEl.role;
-
-/* ================= UI ================= */
-const incoming = document.getElementById("incomingControls");
-const active = document.getElementById("activeControls");
-const acceptBtn = document.getElementById("acceptBtn");	
-const rejectBtn = document.getElementById("rejectBtn");
-const hangupBtn = document.getElementById("hangupBtn");
-
-/* ================= AUDIO ================= */
-const remoteAudio = document.getElementById("remoteAudio");
-const ringtone = document.getElementById("ringtone");
-const ringback = document.getElementById("ringbackTone");
-remoteAudio.autoplay = true;
-remoteAudio.muted = false;
-
-/*=================video==================*/
-const localVideo = document.getElementById("localVideo");
-const remoteVideo = document.getElementById("remoteVideo");
-const callType =
-  new URLSearchParams(window.location.search).get("type") || "audio";
-
-if (callType === "audio") {
-  localVideo.hidden = true;
-  remoteVideo.hidden = true;
-}
-	
-/* ================= TIMER ================= */
-let callStartTime = null;
-let callTimerInterval = null;
-const callTimerEl = document.getElementById("callTimer");
-
-/* ================= WEBRTC ================= */
-let pc = null;
-let localStream = null;
-let pendingICE = [];
-let callActive = false;
-
-/* ================= INIT UI ================= */
-if (role === "caller") {
-  // 🔵 SENDER
-  incoming.hidden = true;   // ❌ no Accept / Reject
-  active.hidden = false;    // ✅ End Call
-  ringback?.play().catch(() => {});
-}
-
-if (role === "receiver") {
-  // 🟢 RECEIVER
-  incoming.hidden = false;  // ✅ Accept / Reject
-  active.hidden = true;     // ❌ no End Call yet
-  ringtone?.play().catch(() => {});
-}
-
-
-/* ================= RECEIVE EVENTS FROM chat.js ================= */
-/*
-  chat.js MUST send messages like:
-  window.open(...).postMessage(event, "*")
-*/
-window.addEventListener("message", async (event) => {
-  const data = event.data;
-  if (!data || data.call_id !== callId) return;
-
-  console.log("📡 CALL EVENT:", data.type);
-
-  if (data.type === "call.accept" && role === "caller") {
-    callActive = true;
-    ringback.pause();
-    ringback.currentTime = 0;
-    startCallTimer();
-    await startCallerOffer();
-  }
-
-  if (data.type === "audio_call_offer" && role === "receiver") {
-    await setupPeer();
-    startCallTimer();
-
-    await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
-    flushICE();
-
-    const answer = await pc.createAnswer();
-    await pc.setLocalDescription(answer);
-
-    window.opener?.postMessage({
-      type: "audio_call_answer",
-      answer,
-      call_id: callId
-    }, "*");
-
-    ringtone.pause();
-    ringtone.currentTime = 0;
-    
-    incoming.hidden = true;
-    active.hidden = fasle;
-  }
-
-  if (data.type === "audio_call_answer" && role === "caller") {
-    await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
-    flushICE();
-  }
-
-  if (data.type === "ice_candidate") {
-    if (pc && pc.remoteDescription) {
-      await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
-    } else {
-      pendingICE.push(data.candidate);
-    }
-  }
-
-  if (data.type === "call.end" || data.type === "call.rejected") {
-    endCall();
-  }
+const socket = io("http://127.0.0.1:3000", {
+  reconnection: true,
+  reconnectionAttempts: 5,
+  reconnectionDelay: 1000
 });
 
-/* ================= WEBRTC ================= */
-async function setupPeer() {
-  if (pc) return;
+socket.on("connect", async () => {
 
-  pc = new RTCPeerConnection({
-    iceServers: [
-    { urls: "stun:stun.l.google.com:19302" },
-    {
-      urls: "turn:openrelay.metered.ca:80?transport=udp",
-      username: "openrelayproject",
-      credential: "openrelayproject"
-    },
-    {
-      urls: "turn:openrelay.metered.ca:80?transport=tcp",
-      username: "openrelayproject",
-      credential: "openrelayproject"
+  console.log("✅ Connected:", socket.id);
+
+  if (typeof stopRingtone === "function") {
+    stopRingtone();
+  }
+
+  socket.emit("joinRoom", { roomId }, async (data) => {
+
+    device = new mediasoupClient.Device();
+
+    await device.load({
+      routerRtpCapabilities: data.rtpCapabilities
+    });
+
+    console.log("🎯 Device Loaded");
+
+    await createRecvTransport();
+    await createSendTransport();
+
+    if (data.existingProducers?.length) {
+      data.existingProducers.forEach(id => consumeProducer(id));
     }
-  ]
 
   });
 
-  pc.onicecandidate = (e) => {
-    if (e.candidate) {
-       console.log("🧊 ICE:", e.candidate.type, e.candidate.protocol);
-      
-        window.opener?.postMessage({
-        type: "ice_candidate",
-        candidate: e.candidate.toJSON(), 
-        call_id: callId
-      }, "*");
-    }
-  };
-   
- pc.oniceconnectionstatechange = () => {
-  console.log("❄ ICE state:", pc.iceConnectionState);
-};
+});
 
-pc.onconnectionstatechange = () => {
-  console.log("📡 Peer state:", pc.connectionState);
-};
+// 🔥 WebSocket (call signaling)
+const protocol = location.protocol === "https:" ? "wss://" : "ws://";
+const callSignalSocket = new WebSocket(protocol + location.host + "/ws/call/");
 
-pc.ontrack = (e) => {
-  const stream = e.streams[0];
+let device;
+let sendTransport;
+let recvTransport;
+let localStream;
+let pendingProducers = [];
 
-  if (e.track.kind === "video") {
-    remoteVideo.srcObject = stream;
-    remoteVideo.play().catch(() => {});
-  }
-	
-  if (e.track.kind === "audio") {
-    remoteAudio.srcObject = stream;
-    remoteAudio.play().catch(() => {});
-  }
-};
+let timerInterval;
+let seconds = 0;
 
-  localStream = await navigator.mediaDevices.getUserMedia({ audio: true,  video:callType === "video" });
-  /* 👇 ADD THIS LINE HERE */
-      
-    localVideo.srcObject = localStream;
-  /* send tracks to peer */   
-   localVideo.muted = true;
-   localVideo.play().catch(() => {});	
-  
-    localStream.getTracks().forEach(t => pc.addTrack(t, localStream));
-}
+const dataEl = document.getElementById("chat-data").dataset;
+const roomId = dataEl.convId;
 
-function flushICE() {
-  pendingICE.forEach(c => pc.addIceCandidate(new RTCIceCandidate(c)));
-  pendingICE = [];
-}
+const callType =
+  new URLSearchParams(window.location.search).get("type") || "audio";
 
-async function startCallerOffer() {
-  await setupPeer();
-  const offer = await pc.createOffer();
-  await pc.setLocalDescription(offer);
+const localVideo = document.getElementById("localVideo");
+const remoteContainer = document.getElementById("remoteContainer");
+const hangupBtn = document.getElementById("hangupBtn");
 
-  window.opener?.postMessage({
-    type: "audio_call_offer",
-    offer,
-    call_id: callId
-  }, "*");
-}
 
-/* ================= BUTTONS ================= */
-acceptBtn.onclick = () => {
-  // 🔔 Tell chat.js that receiver accepted the call
-  window.opener?.postMessage({
-    type: "call.accept",
-    call_id: callId
-  }, "*");
+/* ================= CONNECT ================= */
 
-  // 🔄 Update UI
-  incoming.hidden = true;
-  active.hidden = false;
-};
 
-rejectBtn.onclick = () => {
-  window.opener?.postMessage({
-    type: "call.rejected",
-    call_id: callId
-  }, "*");
-  endCall();
-};
+/* ================= LOCAL STREAM ================= */
 
-hangupBtn.onclick = () => {
-  window.opener?.postMessage({
-    type: "call.end",
-    call_id: callId
-  }, "*");
-  endCall();
-};
+async function getLocalStream() {
 
-/* ================= TIMER ================= */
-function startCallTimer() {
-  callStartTime = Date.now();	
-  callTimerInterval = setInterval(() => {
-    const diff = Date.now() - callStartTime;
-    const sec = Math.floor(diff / 1000) % 60;
-    const min = Math.floor(diff / 60000);
-    callTimerEl.textContent =
-      `${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
-  }, 1000);
-}
-
-function stopCallTimer() {
-  if (callTimerInterval) {
-    clearInterval(callTimerInterval);
-    callTimerInterval = null;
-  }
-}
-
-/* ================= CLEANUP ================= */
-function endCall() {
-  stopCallTimer();
   try {
-    localStream?.getTracks().forEach(t => t.stop());
-    pc?.close();
-  } catch (e) {}
-  window.close();
+
+    localStream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: false,
+        noiseSuppression: false,
+        autoGainControl: false
+      },
+      video: callType === "video"
+    });
+
+  } catch (err) {
+
+    console.error("Microphone access error:", err);
+    alert("Microphone permission required for calls.");
+    return;
+
+  }
+
+  console.log("🎤 Local tracks:", localStream.getTracks());
+
+  const audioTrack = localStream.getAudioTracks()[0];
+
+  console.log("Mic enabled:", audioTrack.enabled);
+  console.log("Mic muted:", audioTrack.muted);
+  console.log("Mic label:", audioTrack.label);
+
+  if (callType === "video") {
+    localVideo.srcObject = localStream;
+    localVideo.muted = true;
+    await localVideo.play();
+  }
+
 }
+
+/* ================= SEND TRANSPORT ================= */
+
+async function createSendTransport() {
+
+  socket.emit("createTransport", { roomId }, async (params) => {
+
+    sendTransport = device.createSendTransport(params);
+
+    console.log("🚀 Send transport:", sendTransport.id);
+
+    sendTransport.on("connect", ({ dtlsParameters }, callback) => {
+
+      socket.emit("connectTransport", {
+        transportId: sendTransport.id,
+        dtlsParameters
+      }, callback);
+
+    });
+
+    sendTransport.on("produce", ({ kind, rtpParameters }, callback) => {
+
+      socket.emit("produce", {
+        transportId: sendTransport.id,
+        kind,
+        rtpParameters
+      }, ({ id }) => {
+        callback({ id });
+      });
+
+    });
+
+    // 🎤 get mic
+    await getLocalStream();
+
+    // ✅ FIXED (no crash now)
+    const controls = document.getElementById("activeControls");
+    if (controls) controls.hidden = false;
+
+    if (!localStream) return;
+
+    // 🎧 send audio/video
+    for (const track of localStream.getTracks()) {
+      console.log("Producing track:", track.kind);
+      await sendTransport.produce({ track });
+    }
+
+    console.log("🎥 Producing media");
+
+  });
+
+}
+
+/* ================= RECEIVE TRANSPORT ================= */
+
+async function createRecvTransport() {
+
+
+  socket.emit("createTransport", { roomId }, async (params) => {
+
+    recvTransport = device.createRecvTransport(params);
+
+    console.log("📡 Recv transport:", recvTransport.id);
+
+    recvTransport.on("connect", ({ dtlsParameters }, callback) => {
+
+      socket.emit("connectTransport", {
+        transportId: recvTransport.id,
+        dtlsParameters
+      }, callback);
+
+    });
+
+    // consume producers that arrived early
+    pendingProducers.forEach(id => consumeProducer(id));
+    pendingProducers = [];
+
+  });
+
+}
+
+/* ================= CONSUME ================= */
+async function consumeProducer(producerId) {
+
+  if (!recvTransport) {
+    pendingProducers.push(producerId);
+    return;
+  }
+
+  socket.emit("consume", {
+    producerId,
+    rtpCapabilities: device.rtpCapabilities
+  }, async (params) => {
+
+    const consumer = await recvTransport.consume(params);
+    const stream = new MediaStream([consumer.track]);
+
+    await consumer.resume();
+
+    console.log("Consumer kind:", consumer.kind);
+
+    if (consumer.kind === "video") {
+
+      const video = document.createElement("video");
+      video.srcObject = stream;
+      video.autoplay = true;
+      video.playsInline = true;
+      video.className = "remote-video";
+
+      remoteContainer.appendChild(video);
+
+    } else if (consumer.kind === "audio") {
+
+      const audio = document.createElement("audio");
+
+      audio.srcObject = stream;
+      audio.autoplay = true;
+      audio.playsInline = true;
+      audio.muted = false;
+
+      audio.onloadedmetadata = async () => {
+        try {
+          await audio.play();
+          console.log("🔊 Audio playing OK");
+        } catch (err) {
+          console.log("❌ Audio blocked:", err);
+        }
+      };
+
+      remoteContainer.appendChild(audio);
+    }
+
+    // ✅ START TIMER HERE (CORRECT PLACE)
+    if (!timerInterval) {
+      document.getElementById("callingStatus").innerText = "Connected";
+      startTimer();
+    }
+
+    console.log("🎧 Consuming:", producerId);
+
+  });
+}
+
+/* ================= NEW PRODUCER ================= */
+
+socket.on("newProducer", ({ producerId }) => {
+
+  console.log("🔥 New producer:", producerId);
+
+  if (!recvTransport) {
+    pendingProducers.push(producerId);
+    return;
+  }
+
+  consumeProducer(producerId);
+
+});
+
+/* ================= END CALL ================= */
+
+let callEnded = false;
+
+function endCall() {
+
+  if (callEnded) return;
+  callEnded = true;
+
+  console.log("📴 Ending call...");
+
+  clearInterval(timerInterval);
+  timerInterval = null;
+  seconds = 0;
+
+  if (callSignalSocket.readyState === WebSocket.OPEN) {
+    callSignalSocket.send(JSON.stringify({
+      type: "call.end",
+      conv_id: roomId
+    }));
+  }
+
+  sendTransport?.close();
+  recvTransport?.close();
+  localStream?.getTracks().forEach(t => t.stop());
+
+  socket.disconnect();
+
+  window.location.href = "/chat/";
+}
+
+if (hangupBtn) {
+  hangupBtn.addEventListener("click", endCall);
+}
+
+window.addEventListener("beforeunload", endCall);
+
+/* ============ timer======*/
+
+function startTimer() {
+  
+ if (timerInterval) return;  
+
+  timerInterval = setInterval(() => {
+
+    seconds++;
+
+    const min = String(Math.floor(seconds / 60)).padStart(2,"0");
+    const sec = String(seconds % 60).padStart(2,"0");
+
+    document.getElementById("callTimer").innerText = `${min}:${sec}`;
+
+  },1000);
+
+
+}
+
+
+/* ================= AUDIO UNLOCK ================= */
+
+document.body.addEventListener("click", () => {
+
+  document.querySelectorAll("audio").forEach(audio => {
+
+    audio.muted = false;
+
+    if (audio.paused) {
+      audio.play().catch(()=>{});
+    }
+
+  });
+
+}, { once: true });
+
+
+

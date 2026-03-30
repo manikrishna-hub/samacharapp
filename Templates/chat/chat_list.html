@@ -4,49 +4,52 @@
 {% block title %}Chats{% endblock %}
 
 {% block content %}
+
 <link rel="stylesheet" href="{% static 'css/chat_list.css' %}">
 
-<div class="chat-page container-fluid px-0 vh-100">
-  <div class="row gx-0 h-100">
+<div class="chat-wrapper">
 
-    <!-- CHAT LIST -->
-    <div class="col-12 col-md-3 chat-list-col p-3">
-      <h3 class="mb-3">Your Chats</h3>
+    <!-- LEFT CHAT USERS -->
+    <div class="chat-sidebar">
+        <h5 class="p-3">Your Chats</h5>
 
-      <div class="chat-users-wrap">
+        <div class="chat-users-wrap">
+            {% for u in users %}
+            <a href="{% url 'chat:chat_room' username=u.username %}"
+               class="chat-user-item">
 
-        {% for u in users %}
-        <a href="{% url 'chat:chat_room' username=u.username %}"
-           class="chat-user-item d-flex align-items-center">
+                <div class="chat-avatar-wrap">
+                    {% if u.profile.profile_pic %}
+                        <img src="{{ u.profile.profile_pic.url }}" class="chat-avatar">
+                    {% else %}
+                        <img src="{% static 'images/default-avatar.png' %}" class="chat-avatar">
+                    {% endif %}
+                </div>
 
-          <div class="chat-avatar-wrap">
-            {% if u.profile.profile_pic %}
-              <img src="{{ u.profile.profile_pic.url }}" class="chat-avatar">
-            {% else %}
-              <img src="{% static 'images/default-avatar.png' %}" class="chat-avatar">
-            {% endif %}
-          </div>
+                <div class="chat-meta">
+                    <div class="chat-name">{{ u.username }}</div>
 
-          <div class="chat-meta ms-2">
-            <div class="chat-name">{{ u.username }}</div>
-          </div>
+                    {% if u.profile.is_online %}
+                        <div class="chat-status online">Online</div>
+                    {% else %}
+                        <div class="chat-status offline">
+                            Last seen {{ u.profile.last_seen|timesince }} ago
+                        </div>
+                    {% endif %}
+                </div>
 
-        </a>
-        {% empty %}
-          <p class="text-muted small">No other users found.</p>
-        {% endfor %}
-
-      </div>
+            </a>
+            {% endfor %}
+        </div>
     </div>
 
-    <!-- DESKTOP PLACEHOLDER -->
-    <div class="d-none d-md-flex col-md-9 chat-main-col p-0 align-items-center justify-content-center">
-      <div class="chat-placeholder p-4 text-center">
-        <p class="lead text-muted">Select a user to start chatting</p>
-      </div>
+    <!-- RIGHT SIDE -->
+    <div class="chat-main">
+        <div class="chat-placeholder">
+            Select a user to start chatting
+        </div>
     </div>
 
-  </div>
 </div>
 
 {% endblock %}

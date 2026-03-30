@@ -52,7 +52,7 @@
         <span>Notifications</span>
     </a>
 
-    <a href="{% url 'my_profile' %}" class="side-item">
+    <a href="{% url 'accounts:my_profile' %}" class="side-item">
         <i class="fa-solid fa-user"></i> <span>Profile</span>
     </a>
 </aside>
@@ -113,8 +113,8 @@
     <i class="fa-brands fa-facebook-messenger"></i>
   </a>
 
-  <a href="{% url 'my_profile' %}"
-     class="{% if request.resolver_match.url_name == 'my_profile' %}active{% endif %}">
+  <a href="{% url 'accounts:my_profile' %}"
+     class="{% if request.resolver_match.url_name == 'accounts:my_profile' %}active{% endif %}">
     <i class="fa-solid fa-user"></i>
   </a>
 
@@ -145,10 +145,27 @@
 
 </div>
 
+   <!--=================== Incoming Call Popup ==========================-->
+
+<div id="incoming-call" class="incoming-call" style="display:none;">
+    <div class="call-box">
+        <h3 id="caller-name">Incoming Call</h3>
+
+        <div class="call-buttons">
+            <button id="accept-call" class="accept">Accept</button>
+            <button id="reject-call" class="reject">Reject</button>
+        </div>
+    </div>
+</div>
 
 {% block extra_js %}{% endblock %}
 
+<audio id="ringtone" preload="auto" loop>
+    <source src="{% static 'sounds/ring.mp3' %}" type="audio/mpeg">
+</audio>
+
 <script src="{% static 'js/home.js' %}"></script>
+<script src="{% static 'js/base.js' %}"></script>
 
 </body>
 </html>
